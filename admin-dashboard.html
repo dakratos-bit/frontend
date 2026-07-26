@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Baker NG – Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .dash-wrap { padding: 36px 6% 80px; max-width: 1100px; margin: 0 auto; }
+    .dash-loading { text-align: center; padding: 100px 0; color: var(--muted); }
+    .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+    .dash-title { font-size: 28px; }
+    .logout-link { color: var(--terracotta); text-decoration: none; font-size: 13.5px; font-weight: 600; cursor: pointer; }
+
+    .tab-row { display: flex; gap: 8px; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
+    .tab-btn {
+      padding: 10px 18px; background: none; border: none; cursor: pointer;
+      font-size: 14px; font-weight: 600; color: var(--muted);
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .tab-btn.on { color: var(--terracotta); border-bottom-color: var(--terracotta); }
+    .tab-panel { display: none; }
+    .tab-panel.on { display: block; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .stat-val { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; }
+    .top-items-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .top-items-card h4 { font-size: 15px; margin-bottom: 14px; }
+    .top-item-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
+    .top-item-row:last-child { border-bottom: none; }
+
+    /* Orders */
+    .order-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
+    .order-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+    .order-cust { font-weight: 700; font-size: 15px; }
+    .order-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .order-items { font-size: 13.5px; color: var(--muted); margin-bottom: 10px; }
+    .order-bottom { display: flex; justify-content: space-between; align-items: center; }
+    .order-total { font-weight: 700; font-family: 'Fraunces', serif; }
+    .status-select {
+      font-size: 12.5px; font-weight: 600; padding: 6px 10px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--cream); cursor: pointer;
+    }
+    .status-pending { color: var(--terracotta); }
+    .status-preparing { color: var(--gold); }
+    .status-ready, .status-completed { color: var(--green); }
+    .status-cancelled { color: var(--muted); }
+
+    /* Menu management */
+    .menu-admin-row {
+      display: flex; justify-content: space-between; align-items: center;
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      padding: 14px 18px; margin-bottom: 10px; gap: 12px;
+    }
+    .menu-admin-info h4 { font-size: 15px; }
+    .menu-admin-info span { font-size: 12.5px; color: var(--muted); }
+    .menu-admin-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
+    .icon-btn.danger { color: var(--red); border-color: rgba(193,80,46,0.3); }
+    .avail-toggle { font-size: 12px; }
+
+    .add-item-form {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px;
+    }
+    .add-item-form h4 { font-size: 15px; margin-bottom: 14px; }
+    .form-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    @media (max-width: 700px) { .form-row { grid-template-columns: 1fr; } }
+
+    /* Customers */
+    .customer-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      padding: 16px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
+    }
+    .customer-name-row { display: flex; align-items: center; gap: 8px; }
+    .customer-name { font-weight: 700; font-size: 15px; }
+    .customer-phone { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+    .returning-badge {
+      font-size: 11px; font-weight: 700; color: var(--olive);
+      background: rgba(95,107,62,0.12); padding: 3px 10px; border-radius: 999px;
+    }
+    .customer-stats { display: flex; gap: 22px; text-align: right; }
+    .customer-stat-label { font-size: 11px; color: var(--muted); }
+    .customer-stat-val { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">The Baker <span>NG</span> <span style="color:var(--muted);font-style:normal;font-size:13px;">Admin</span></a>
+  <div><a class="logout-link" id="logoutBtn">Log Out</a></div>
+</nav>
+
+<div id="loadingState" class="dash-loading">Checking session...</div>
+
+<div class="dash-wrap" id="dashContent" style="display:none;">
+  <div class="dash-header">
+    <div class="dash-title">Dashboard</div>
+  </div>
+
+  <div class="tab-row">
+    <button class="tab-btn on" data-tab="stats" onclick="switchTab('stats')">Overview</button>
+    <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Orders</button>
+    <button class="tab-btn" data-tab="customers" onclick="switchTab('customers')">Customers</button>
+    <button class="tab-btn" data-tab="menu" onclick="switchTab('menu')">Menu</button>
+  </div>
+
+  <!-- STATS TAB -->
+  <div class="tab-panel on" id="tab-stats">
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="top-items-card">
+      <h4>Top Selling Items</h4>
+      <div id="topItemsList"></div>
+    </div>
+  </div>
+
+  <!-- ORDERS TAB -->
+  <div class="tab-panel" id="tab-orders">
+    <div id="ordersList"></div>
+  </div>
+
+  <!-- CUSTOMERS TAB -->
+  <div class="tab-panel" id="tab-customers">
+    <div id="customersList"></div>
+  </div>
+
+  <!-- MENU TAB -->
+  <div class="tab-panel" id="tab-menu">
+    <div class="add-item-form">
+      <h4>Add Menu Item</h4>
+      <form id="addItemForm">
+        <div class="form-row">
+          <input type="text" id="newName" placeholder="Item name" required/>
+          <input type="text" id="newCategory" placeholder="Category (e.g. Mains)" required/>
+          <input type="text" id="newPrice" placeholder="Price (NGN)" inputmode="numeric" required/>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr;">
+          <input type="text" id="newDescription" placeholder="Short description (optional)"/>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr;">
+          <label class="form-label">Photo (optional)</label>
+          <input type="file" id="newImage" accept="image/*"/>
+        </div>
+        <button type="submit" class="btn btn-primary" style="padding:10px 20px;">Add Item</button>
+        <div class="form-msg" id="addItemMsg"></div>
+      </form>
+    </div>
+
+    <div class="add-item-form">
+      <h4>Add Banana Bread Topping</h4>
+      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;margin-top:-8px;">Leave a size blank if that topping doesn't come in that size.</p>
+      <form id="addBananaForm">
+        <div class="form-row" style="grid-template-columns:2fr 1fr;">
+          <input type="text" id="bbName" placeholder="Topping name (e.g. Red Velvet)" required/>
+          <input type="text" id="bbDescription" placeholder="Description (optional)"/>
+        </div>
+        <div class="form-row" style="grid-template-columns:repeat(4,1fr);">
+          <div>
+            <label class="form-label">6-in-1 Mini Loaves</label>
+            <input type="text" id="bbSixInOne" placeholder="₦" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="form-label">Big</label>
+            <input type="text" id="bbBig" placeholder="₦" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="form-label">Medium</label>
+            <input type="text" id="bbMedium" placeholder="₦" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="form-label">Small</label>
+            <input type="text" id="bbSmall" placeholder="₦" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="form-row" style="grid-template-columns:1fr;">
+          <label class="form-label">Photo (optional)</label>
+          <input type="file" id="bbImage" accept="image/*"/>
+        </div>
+        <button type="submit" class="btn btn-primary" style="padding:10px 20px;">Add Banana Bread Topping</button>
+        <div class="form-msg" id="addBananaMsg"></div>
+      </form>
+    </div>
+    <div id="menuAdminList"></div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:4100/api';
+  const IMAGE_BASE = 'http://localhost:4100';
+
+  function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
+
+  async function apiGet(path) {
+    const res = await fetch(`${API_BASE}${path}`, { credentials: 'include' });
+    if (res.status === 401) { window.location.href = 'admin-login.html'; throw new Error('unauthorized'); }
+    return res.json();
+  }
+  async function apiSend(path, method, body) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      method, credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (res.status === 401) { window.location.href = 'admin-login.html'; throw new Error('unauthorized'); }
+    return res.json();
+  }
+
+  function switchTab(name) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('on', p.id === `tab-${name}`));
+    if (name === 'orders') loadOrders();
+    if (name === 'menu') loadMenuAdmin();
+    if (name === 'stats') loadStats();
+  }
+
+  async function loadStats() {
+    const stats = await apiGet('/admin/stats');
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="stat-label">Today's Revenue</div><div class="stat-val">${formatNgn(stats.todaysRevenue)}</div></div>
+      <div class="stat-card"><div class="stat-label">Today's Orders</div><div class="stat-val">${stats.todaysOrders}</div></div>
+      <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val">${formatNgn(stats.totalRevenue)}</div></div>
+      <div class="stat-card"><div class="stat-label">Pending Orders</div><div class="stat-val">${stats.pendingOrders}</div></div>
+    `;
+    document.getElementById('topItemsList').innerHTML = stats.topItems.length
+      ? stats.topItems.map(i => `<div class="top-item-row"><span>${i.name}</span><span>${i.qty} sold</span></div>`).join('')
+      : '<p style="color:var(--muted);font-size:13.5px;">No orders yet.</p>';
+  }
+
+  async function loadOrders() {
+    const data = await apiGet('/admin/orders');
+    const list = document.getElementById('ordersList');
+    if (data.orders.length === 0) {
+      list.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0;">No orders yet.</p>';
+      return;
+    }
+    list.innerHTML = data.orders.map(o => `
+      <div class="order-card">
+        <div class="order-top">
+          <div>
+            <div class="order-cust">${o.customerName}</div>
+            <div class="order-meta">${o.phone} · ${o.fulfillment}${o.address ? ' · ' + o.address : ''}</div>
+            <div class="order-meta">${new Date(o.createdAt).toLocaleString()}</div>
+          </div>
+          <select class="status-select status-${o.status}" onchange="updateStatus('${o.id}', this.value)">
+            ${['pending','preparing','ready','completed','cancelled'].map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select>
+        </div>
+        <div class="order-items">${o.items.map(i => `${i.qty}x ${i.name}`).join(', ')}</div>
+        <div class="order-bottom"><span class="order-total">${formatNgn(o.total)}</span></div>
+      </div>
+    `).join('');
+  }
+
+  async function updateStatus(id, status) {
+    await apiSend(`/admin/orders/${id}/status`, 'PATCH', { status });
+    loadOrders();
+    loadStats();
+  }
+
+  async function loadMenuAdmin() {
+    const data = await apiGet('/menu');
+    const list = document.getElementById('menuAdminList');
+    list.innerHTML = data.items.map(item => `
+      <div class="menu-admin-row">
+        <div style="display:flex;align-items:center;gap:12px;">
+          ${item.imageUrl
+            ? `<img src="${IMAGE_BASE}${item.imageUrl}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;" />`
+            : `<div style="width:44px;height:44px;border-radius:8px;background:var(--cream-dark);flex-shrink:0;"></div>`}
+          <div class="menu-admin-info">
+            <h4>${item.name}</h4>
+            <span>${item.category} · ${item.variants
+              ? item.variants.map(v => `${v.label}: ${formatNgn(v.price)}`).join(' · ')
+              : formatNgn(item.price)}</span>
+          </div>
+        </div>
+        <div class="menu-admin-actions">
+          <label class="avail-toggle">
+            <input type="checkbox" ${item.available ? 'checked' : ''} onchange="toggleAvailable('${item.id}', this.checked)"/>
+            Available
+          </label>
+          <button class="icon-btn danger" onclick="deleteItem('${item.id}')">Delete</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function toggleAvailable(id, available) {
+    await apiSend(`/admin/menu/${id}`, 'PUT', { available });
+  }
+  async function deleteItem(id) {
+    if (!confirm('Remove this item from the menu?')) return;
+    await apiSend(`/admin/menu/${id}`, 'DELETE');
+    loadMenuAdmin();
+  }
+
+  document.getElementById('addItemForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('newName').value.trim();
+    const category = document.getElementById('newCategory').value.trim();
+    const price = parseFloat(document.getElementById('newPrice').value);
+    const description = document.getElementById('newDescription').value.trim();
+    const imageFile = document.getElementById('newImage').files[0];
+    const msg = document.getElementById('addItemMsg');
+    msg.style.display = 'none';
+
+    if (!name || !category || !price || price <= 0) {
+      msg.className = 'form-msg error'; msg.textContent = 'Fill in name, category, and a valid price.'; msg.style.display = 'block';
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('category', category);
+    formData.append('price', price);
+    formData.append('description', description);
+    if (imageFile) formData.append('image', imageFile);
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Adding...';
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/menu`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData, // no Content-Type header — the browser sets the multipart boundary itself
+      });
+      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
+      const data = await res.json();
+      if (data.error) {
+        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
+      } else {
+        e.target.reset();
+        loadMenuAdmin();
+      }
+    } catch (err) {
+      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Add Item';
+    }
+  });
+
+  document.getElementById('addBananaForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('bbName').value.trim();
+    const description = document.getElementById('bbDescription').value.trim();
+    const sixInOne = document.getElementById('bbSixInOne').value.trim();
+    const big = document.getElementById('bbBig').value.trim();
+    const medium = document.getElementById('bbMedium').value.trim();
+    const small = document.getElementById('bbSmall').value.trim();
+    const imageFile = document.getElementById('bbImage').files[0];
+    const msg = document.getElementById('addBananaMsg');
+    msg.style.display = 'none';
+
+    if (!name) {
+      msg.className = 'form-msg error'; msg.textContent = 'Enter a topping name.'; msg.style.display = 'block';
+      return;
+    }
+    if (!sixInOne && !big && !medium && !small) {
+      msg.className = 'form-msg error'; msg.textContent = 'Enter a price for at least one size.'; msg.style.display = 'block';
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', description);
+    if (sixInOne) formData.append('sixInOne', sixInOne);
+    if (big) formData.append('big', big);
+    if (medium) formData.append('medium', medium);
+    if (small) formData.append('small', small);
+    if (imageFile) formData.append('image', imageFile);
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Adding...';
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/menu/banana-bread`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData,
+      });
+      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
+      const data = await res.json();
+      if (data.error) {
+        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
+      } else {
+        e.target.reset();
+        loadMenuAdmin();
+      }
+    } catch (err) {
+      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Add Banana Bread Topping';
+    }
+  });
+
+  document.getElementById('logoutBtn').addEventListener('click', async () => {
+    await apiSend('/admin/logout', 'POST');
+    window.location.href = 'admin-login.html';
+  });
+
+  async function init() {
+    try {
+      await apiGet('/admin/me');
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('dashContent').style.display = 'block';
+      loadStats();
+    } catch (err) {
+      if (err.message === 'unauthorized') return; // apiGet already redirected to admin-login.html
+      document.getElementById('loadingState').innerHTML =
+        'Could not reach the server.<br><span style="font-size:12.5px;">Make sure the backend is running, and that this page is being served on the port set in FRONTEND_ORIGIN.</span>';
+    }
+  }
+
+  init();
+</script>
+
+</body>
+</html>

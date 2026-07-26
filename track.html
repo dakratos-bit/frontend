@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Baker NG – Track Your Order</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .track-wrap { max-width: 480px; margin: 0 auto; padding: 50px 6% 80px; }
+    .track-title { font-size: 28px; margin-bottom: 6px; text-align: center; }
+    .track-sub { color: var(--muted); font-size: 14px; text-align: center; margin-bottom: 28px; }
+
+    .lookup-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .form-msg { font-size: 12.5px; margin-top: 10px; text-align: center; display: none; }
+    .form-msg.error { color: var(--red); display: block; }
+
+    .result-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 26px; display: none; }
+    .result-card.show { display: block; }
+    .result-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; }
+    .result-cust { font-weight: 700; font-size: 17px; }
+    .result-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+    .result-total { font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; color: var(--terracotta); }
+
+    /* Status timeline */
+    .timeline { display: flex; justify-content: space-between; margin: 26px 0 30px; position: relative; }
+    .timeline::before {
+      content: ''; position: absolute; top: 13px; left: 20px; right: 20px; height: 2px; background: var(--border); z-index: 0;
+    }
+    .timeline-step { position: relative; z-index: 1; display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .step-dot {
+      width: 26px; height: 26px; border-radius: 50%; background: var(--cream-dark);
+      border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+      font-size: 12px; margin-bottom: 8px; color: var(--muted); font-weight: 700;
+    }
+    .timeline-step.done .step-dot { background: var(--olive); border-color: var(--olive); color: #fff; }
+    .timeline-step.current .step-dot { background: var(--terracotta); border-color: var(--terracotta); color: #fff; }
+    .step-label { font-size: 11px; color: var(--muted); text-align: center; font-weight: 600; text-transform: capitalize; }
+    .timeline-step.done .step-label, .timeline-step.current .step-label { color: var(--ink); }
+
+    .cancelled-banner {
+      background: rgba(193,80,46,0.08); border: 1px solid rgba(193,80,46,0.25); color: var(--terracotta);
+      border-radius: 10px; padding: 12px 16px; font-size: 13.5px; font-weight: 600; text-align: center; margin-bottom: 20px;
+    }
+
+    .order-items-list { font-size: 13.5px; color: var(--muted); }
+    .order-items-list div { padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .order-items-list div:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">The Baker <span>NG</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html#menu">Menu</a></li>
+    <li><a href="track.html">Track Order</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<div class="track-wrap">
+  <div class="track-title">Track Your Order</div>
+  <div class="track-sub">Enter your order ID and the phone number you checked out with.</div>
+
+  <div class="lookup-card">
+    <form id="trackForm" novalidate>
+      <div class="form-group">
+        <label class="form-label">Order ID</label>
+        <input type="text" id="orderIdInput" placeholder="e.g. order_mrz0y..." required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" id="phoneInput" placeholder="0801 234 5678" required/>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:12px;">Track Order</button>
+      <div class="form-msg" id="trackMsg"></div>
+    </form>
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-top">
+      <div>
+        <div class="result-cust" id="resCust"></div>
+        <div class="result-meta" id="resMeta"></div>
+      </div>
+      <div class="result-total" id="resTotal"></div>
+    </div>
+
+    <div id="cancelledBanner" class="cancelled-banner" style="display:none;">This order was cancelled.</div>
+
+    <div class="timeline" id="timeline"></div>
+
+    <div class="order-items-list" id="resItems"></div>
+  </div>
+</div>
+
+<script>
+  const API_BASE = 'http://localhost:4100/api';
+  const STEPS = ['pending', 'preparing', 'ready', 'completed'];
+
+  function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
+
+  // Prefill from a link like track.html?orderId=xxx, or fall back to the
+  // last order saved locally by index.html if the customer arrives directly.
+  const params = new URLSearchParams(window.location.search);
+  const savedOrderId = (() => { try { return localStorage.getItem('bk_lastOrderId'); } catch (e) { return null; } })();
+  const savedPhone = (() => { try { return localStorage.getItem('bk_lastOrderPhone'); } catch (e) { return null; } })();
+
+  if (params.get('orderId')) {
+    document.getElementById('orderIdInput').value = params.get('orderId');
+  } else if (savedOrderId) {
+    document.getElementById('orderIdInput').value = savedOrderId;
+  }
+  if (savedPhone) document.getElementById('phoneInput').value = savedPhone;
+
+  document.getElementById('trackForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const orderId = document.getElementById('orderIdInput').value.trim();
+    const phone = document.getElementById('phoneInput').value.trim();
+    const msg = document.getElementById('trackMsg');
+    const resultCard = document.getElementById('resultCard');
+    msg.style.display = 'none';
+    resultCard.classList.remove('show');
+
+    if (!orderId || !phone) {
+      msg.className = 'form-msg error'; msg.textContent = 'Enter both your order ID and phone number.'; msg.style.display = 'block';
+      return;
+    }
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Looking up...';
+
+    try {
+      const res = await fetch(`${API_BASE}/orders/track?orderId=${encodeURIComponent(orderId)}&phone=${encodeURIComponent(phone)}`);
+      const data = await res.json();
+      if (!res.ok) {
+        msg.className = 'form-msg error'; msg.textContent = data.error || 'Order not found.'; msg.style.display = 'block';
+      } else {
+        renderOrder(data.order);
+        resultCard.classList.add('show');
+      }
+    } catch (err) {
+      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server. Is the backend running?'; msg.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Track Order';
+    }
+  });
+
+  function renderOrder(order) {
+    document.getElementById('resCust').textContent = order.customerName;
+    document.getElementById('resMeta').textContent = `${order.fulfillment} · placed ${new Date(order.createdAt).toLocaleString()}`;
+    document.getElementById('resTotal').textContent = formatNgn(order.total);
+
+    document.getElementById('resItems').innerHTML = order.items.map(i => `<div>${i.qty}x ${i.name}</div>`).join('');
+
+    const cancelledBanner = document.getElementById('cancelledBanner');
+    const timeline = document.getElementById('timeline');
+
+    if (order.status === 'cancelled') {
+      cancelledBanner.style.display = 'block';
+      timeline.style.display = 'none';
+      return;
+    }
+
+    cancelledBanner.style.display = 'none';
+    timeline.style.display = 'flex';
+    const currentIdx = STEPS.indexOf(order.status);
+
+    timeline.innerHTML = STEPS.map((step, i) => {
+      let cls = '';
+      let dotContent = i + 1;
+      if (i < currentIdx) { cls = 'done'; dotContent = '✓'; }
+      else if (i === currentIdx) { cls = 'current'; }
+      return `
+        <div class="timeline-step ${cls}">
+          <div class="step-dot">${dotContent}</div>
+          <div class="step-label">${step}</div>
+        </div>
+      `;
+    }).join('');
+  }
+</script>
+
+</body>
+</html>

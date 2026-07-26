@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>The Baker NG – Order Online</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">The Baker <span>NG</span></a>
+  <ul class="nav-links">
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="track.html">Track Order</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="hero-eyebrow">Fresh · Local · Made to Order</div>
+  <h1>Good food,<br><em>made with heart</em></h1>
+  <p>Order online for pickup or delivery. Everything on our menu is made fresh the same day.</p>
+  <a href="#menu" class="btn btn-primary btn-lg">View Menu</a>
+</section>
+
+<section class="menu-section" id="menu">
+  <div id="menuContent">
+    <p style="text-align:center;color:var(--muted);">Loading menu...</p>
+  </div>
+</section>
+
+<button class="cart-toggle" id="cartToggle" onclick="openCart()">
+  🛒 <span id="cartCount">0</span> · <span id="cartTotalMini">₦0</span>
+</button>
+
+<div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+
+<div class="cart-drawer" id="cartDrawer">
+
+  <!-- CART VIEW -->
+  <div id="cartView">
+    <div class="cart-header">
+      <h3>Your Order</h3>
+      <button class="cart-close" onclick="closeAllPanels()">&times;</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">Your cart is empty.<br>Add something tasty from the menu.</div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span>Total</span><span id="cartTotal">₦0</span></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;" id="checkoutBtn" onclick="showCheckout()" disabled>Checkout</button>
+    </div>
+  </div>
+
+  <!-- CHECKOUT VIEW -->
+  <div id="checkoutView" class="checkout-panel" style="flex:1;overflow-y:auto;">
+    <div class="cart-header">
+      <h3>Checkout</h3>
+      <button class="cart-close" onclick="closeAllPanels()">&times;</button>
+    </div>
+    <form id="checkoutForm" style="padding:20px 24px;" novalidate>
+      <button type="button" class="back-link" onclick="showCart()">&larr; Back to cart</button>
+
+      <div class="form-group">
+        <label class="form-label">Full Name</label>
+        <input type="text" id="custName" placeholder="Your name" required/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" id="custPhone" placeholder="0801 234 5678" required/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email (optional — for order updates)</label>
+        <input type="email" id="custEmail" placeholder="you@example.com"/>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Fulfillment</label>
+        <div class="fulfillment-toggle">
+          <button type="button" class="on" id="pickupBtn" onclick="setFulfillment('pickup')">Pickup</button>
+          <button type="button" id="deliveryBtn" onclick="setFulfillment('delivery')">Delivery</button>
+        </div>
+      </div>
+
+      <div class="form-group" id="addressGroup" style="display:none;">
+        <label class="form-label">Delivery Address</label>
+        <textarea id="custAddress" rows="2" placeholder="Street, area, landmark"></textarea>
+      </div>
+
+      <div class="cart-total-row"><span>Total</span><span id="checkoutTotal">₦0</span></div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:13px;">Place Order</button>
+      <div class="form-msg" id="checkoutMsg"></div>
+    </form>
+  </div>
+
+  <!-- CONFIRMATION VIEW -->
+  <div id="confirmView" class="confirm-panel">
+    <div class="confirm-icon">🎉</div>
+    <h3>Order placed!</h3>
+    <p id="confirmText"></p>
+    <div style="background:var(--cream-dark);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">YOUR ORDER ID — SAVE THIS TO TRACK YOUR ORDER</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <strong id="confirmOrderId" style="font-size:15px;word-break:break-all;">-</strong>
+        <button type="button" id="copyOrderIdBtn" class="btn btn-ghost" style="padding:6px 14px;font-size:12px;white-space:nowrap;">Copy</button>
+      </div>
+    </div>
+    <a href="#" id="trackOrderLink" class="btn btn-ghost" style="margin-right:8px;">Track This Order</a>
+    <button class="btn btn-primary" onclick="closeAllPanels()">Done</button>
+  </div>
+
+</div>
+
+<footer>
+  &copy; 2026 The Baker NG. Made fresh, ordered easy.
+</footer>
+
+<script>
+  const API_BASE = 'http://localhost:4100/api';
+  const IMAGE_BASE = 'http://localhost:4100';
+  let menuItems = [];
+  let cart = {}; // { menuItemId: qty }
+  let fulfillment = 'pickup';
+
+  function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
+
+  async function loadMenu() {
+    try {
+      const res = await fetch(`${API_BASE}/menu`);
+      const data = await res.json();
+      menuItems = data.items;
+      renderMenu();
+    } catch (err) {
+      document.getElementById('menuContent').innerHTML = '<p style="text-align:center;color:var(--muted);">Could not load the menu. Is the backend running?</p>';
+    }
+  }
+
+  function renderMenu() {
+    const categories = [...new Set(menuItems.map(i => i.category))];
+    const container = document.getElementById('menuContent');
+    container.innerHTML = categories.map(cat => `
+      <h2 class="category-title">${cat}</h2>
+      <div class="menu-grid">
+        ${menuItems.filter(i => i.category === cat).map(item => `
+          <div class="menu-card">
+            ${item.imageUrl
+              ? `<img src="${IMAGE_BASE}${item.imageUrl}" class="menu-card-img" alt="${item.name}"/>`
+              : `<div class="menu-card-img menu-card-img-placeholder">🍽️</div>`}
+            <div class="menu-card-top">
+              <h4>${item.name}</h4>
+              ${item.variants ? '' : `<span class="price">${formatNgn(item.price)}</span>`}
+            </div>
+            <p>${item.description || ''}</p>
+            ${item.variants ? renderVariantPicker(item) : `
+              <div class="add-row">
+                ${item.available
+                  ? `<button class="btn btn-ghost" style="font-size:13px;padding:8px 16px;" onclick="addToCart('${item.id}')">Add to cart</button>`
+                  : `<span class="unavailable-tag">Currently unavailable</span>`}
+              </div>
+            `}
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
+  }
+
+  function renderVariantPicker(item) {
+    if (!item.available) {
+      return `<div class="add-row"><span class="unavailable-tag">Currently unavailable</span></div>`;
+    }
+    return `
+      <div class="variant-row">
+        ${item.variants.map(v => `
+          <button class="variant-btn" onclick="addVariantToCart('${item.id}', '${v.label.replace(/'/g, "\\'")}')">
+            <span>${v.label}</span>
+            <span class="variant-price">${formatNgn(v.price)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function addVariantToCart(id, variantLabel) {
+    const key = `${id}::${variantLabel}`;
+    cart[key] = (cart[key] || 0) + 1;
+    renderCart();
+    flashCartButton();
+  }
+
+  function addToCart(id) {
+    cart[id] = (cart[id] || 0) + 1;
+    renderCart();
+    // Drawer intentionally does NOT auto-open here — customers keep browsing
+    // and open the cart themselves (via the floating button) when ready.
+    flashCartButton();
+  }
+
+  function flashCartButton() {
+    const btn = document.getElementById('cartToggle');
+    btn.style.transform = 'scale(1.08)';
+    setTimeout(() => { btn.style.transform = 'scale(1)'; }, 180);
+  }
+  function changeQty(id, delta) {
+    cart[id] = (cart[id] || 0) + delta;
+    if (cart[id] <= 0) delete cart[id];
+    renderCart();
+  }
+
+  function cartLines() {
+    return Object.entries(cart).map(([key, qty]) => {
+      const [id, variantLabel] = key.split('::');
+      const item = menuItems.find(i => i.id === id);
+      if (!item) return null;
+      if (variantLabel) {
+        const variant = (item.variants || []).find(v => v.label === variantLabel);
+        if (!variant) return null;
+        return { key, item, qty, variantLabel, displayName: `${item.name} (${variant.label})`, unitPrice: variant.price };
+      }
+      return { key, item, qty, variantLabel: null, displayName: item.name, unitPrice: item.price };
+    }).filter(Boolean);
+  }
+
+  function cartTotal() {
+    return cartLines().reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
+  }
+
+  function renderCart() {
+    const lines = cartLines();
+    const itemsEl = document.getElementById('cartItems');
+    const total = cartTotal();
+    const count = lines.reduce((s, l) => s + l.qty, 0);
+
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartTotalMini').textContent = formatNgn(total);
+    document.getElementById('cartTotal').textContent = formatNgn(total);
+    document.getElementById('checkoutTotal').textContent = formatNgn(total);
+    document.getElementById('checkoutBtn').disabled = lines.length === 0;
+
+    itemsEl.innerHTML = lines.length === 0
+      ? '<div class="cart-empty">Your cart is empty.<br>Add something tasty from the menu.</div>'
+      : lines.map(l => `
+        <div class="cart-line">
+          <div>
+            <div class="cart-line-name">${l.displayName}</div>
+            <div class="cart-line-price">${formatNgn(l.unitPrice)} each</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty('${l.key}',-1)">&minus;</button>
+            <span>${l.qty}</span>
+            <button class="qty-btn" onclick="changeQty('${l.key}',1)">+</button>
+          </div>
+        </div>
+      `).join('');
+  }
+
+  function openCart() {
+    document.getElementById('cartDrawer').classList.add('open');
+    document.getElementById('overlay').classList.add('show');
+    showCart();
+  }
+  function closeAllPanels() {
+    document.getElementById('cartDrawer').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+  }
+  function showCart() {
+    document.getElementById('cartView').style.display = 'flex';
+    document.getElementById('cartView').style.flex = '1';
+    document.getElementById('cartView').style.flexDirection = 'column';
+    document.getElementById('checkoutView').classList.remove('show');
+    document.getElementById('confirmView').classList.remove('show');
+  }
+  function showCheckout() {
+    if (cartLines().length === 0) return;
+    document.getElementById('cartView').style.display = 'none';
+    document.getElementById('checkoutView').classList.add('show');
+    document.getElementById('confirmView').classList.remove('show');
+  }
+  function setFulfillment(mode) {
+    fulfillment = mode;
+    document.getElementById('pickupBtn').classList.toggle('on', mode === 'pickup');
+    document.getElementById('deliveryBtn').classList.toggle('on', mode === 'delivery');
+    document.getElementById('addressGroup').style.display = mode === 'delivery' ? 'block' : 'none';
+  }
+
+  document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('custName').value.trim();
+    const phone = document.getElementById('custPhone').value.trim();
+    const email = document.getElementById('custEmail').value.trim();
+    const address = document.getElementById('custAddress').value.trim();
+    const msg = document.getElementById('checkoutMsg');
+    msg.style.display = 'none';
+
+    if (!name) { msg.className = 'form-msg error'; msg.textContent = 'Enter your name.'; msg.style.display = 'block'; return; }
+    if (!/^\d{7,15}$/.test(phone.replace(/\D/g, ''))) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid phone number.'; msg.style.display = 'block'; return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid email or leave it blank.'; msg.style.display = 'block'; return; }
+    if (fulfillment === 'delivery' && !address) { msg.className = 'form-msg error'; msg.textContent = 'Enter a delivery address.'; msg.style.display = 'block'; return; }
+
+    const payload = {
+      customerName: name,
+      phone,
+      email: email || undefined,
+      fulfillment,
+      address: fulfillment === 'delivery' ? address : undefined,
+      items: cartLines().map(l => ({ menuItemId: l.item.id, variantLabel: l.variantLabel || undefined, qty: l.qty })),
+    };
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Placing order...';
+
+    try {
+      const res = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        msg.className = 'form-msg error'; msg.textContent = data.error || 'Could not place order.'; msg.style.display = 'block';
+      } else {
+        document.getElementById('confirmText').textContent =
+          `Thanks, ${name.split(' ')[0]}! Your order total is ${formatNgn(data.order.total)}. We'll have it ready for ${fulfillment}.`;
+        document.getElementById('confirmOrderId').textContent = data.order.id;
+        document.getElementById('trackOrderLink').href = `track.html?orderId=${encodeURIComponent(data.order.id)}`;
+        // Saved locally so the customer can still find their order ID even if they
+        // close the confirmation popup before copying it down.
+        try {
+          localStorage.setItem('bk_lastOrderId', data.order.id);
+          localStorage.setItem('bk_lastOrderPhone', phone);
+        } catch (err) { /* ignore if storage is unavailable */ }
+        document.getElementById('checkoutView').classList.remove('show');
+        document.getElementById('confirmView').classList.add('show');
+        cart = {};
+        renderCart();
+      }
+    } catch (err) {
+      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server. Is the backend running?'; msg.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Place Order';
+    }
+  });
+
+  loadMenu();
+
+  document.getElementById('copyOrderIdBtn').addEventListener('click', async () => {
+    const id = document.getElementById('confirmOrderId').textContent;
+    const btn = document.getElementById('copyOrderIdBtn');
+    try {
+      await navigator.clipboard.writeText(id);
+      btn.textContent = 'Copied!';
+    } catch (err) {
+      btn.textContent = 'Select & copy manually';
+    }
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+  });
+</script>
+
+</body>
+</html>
