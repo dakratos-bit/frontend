@@ -7,19 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css"/>
 </head>
-  <script>
-    document.getElementById('navToggle').addEventListener('click', function () {
-  document.getElementById('navLinks').classList.toggle('open');
-});
-
-document.querySelectorAll('.nav-links a').forEach(function (a) {
-  a.addEventListener('click', function () {
-    document.getElementById('navLinks').classList.remove('open');
-  });
-});
-  </script>
 <body>
-
 <nav>
   <a href="index.html" class="logo">The Baker <span>NG</span></a>
   <ul class="nav-links" id="navLinks">
@@ -29,11 +17,9 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
   </ul>
   <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
 </nav>
-
 <section class="section" style="padding:60px 6% 40px;max-width:600px;margin:0 auto;">
   <h2 style="text-align:center;font-size:28px;margin-bottom:6px;">Get in Touch</h2>
   <p style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:28px;">Call, WhatsApp, or find us on social — we'd love to hear from you.</p>
-
   <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px;">
     <a href="tel:07057155056" class="btn btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;">
       📞 Call 0705 715 5056
@@ -51,10 +37,19 @@ document.querySelectorAll('.nav-links a').forEach(function (a) {
     </div>
   </div>
 </section>
-
 <footer>
   &copy; 2026 The Baker NG. Made fresh, ordered easy.
 </footer>
 
+<script>
+  document.getElementById('navToggle').addEventListener('click', function () {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+  document.querySelectorAll('.nav-links a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.getElementById('navLinks').classList.remove('open');
+    });
+  });
+</script>
 </body>
 </html>
