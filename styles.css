@@ -56,6 +56,16 @@ nav {
 .nav-links a { color: var(--muted); text-decoration: none; font-size: 14px; font-weight: 600; }
 .nav-links a:hover { color: var(--terracotta); }
 
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--ink);
+  z-index: 110;
+}
+
 /* ── BUTTONS ── */
 .btn {
   padding: 11px 22px;
@@ -259,15 +269,6 @@ input:focus, textarea:focus, select:focus { border-color: var(--terracotta); }
 /* ── FOOTER ── */
 footer { padding: 30px 6%; text-align: center; color: var(--muted); font-size: 13px; border-top: 1px solid var(--border); }
 
-.nav-toggle {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 24px;
-  cursor: pointer;
-  color: var(--ink);
-}
-
 @media (max-width: 700px) {
   .nav-toggle { display: block; }
   .nav-links {
@@ -281,8 +282,9 @@ footer { padding: 30px 6%; text-align: center; color: var(--muted); font-size: 1
     align-items: center;
     background: var(--cream);
     border-bottom: 1px solid var(--border);
-    padding: 14px 6% 20px;
+    padding: 14px 0 20px;
     gap: 16px;
+    list-style: none;
   }
   .nav-links.open { display: flex; }
 }
