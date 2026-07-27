@@ -249,6 +249,7 @@
           <div>
             <div class="cart-line-name">${l.displayName}</div>
             <div class="cart-line-price">${formatNgn(l.unitPrice)} each</div>
+            function toggleNav() {document.getElementById('navLinks').classList.toggle('open');}
           </div>
           <div class="qty-controls">
             <button class="qty-btn" onclick="changeQty('${l.key}',-1)">&minus;</button>
