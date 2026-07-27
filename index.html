@@ -348,7 +348,9 @@
   });
 
   loadMenu();
-
+  document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
+});
   document.getElementById('copyOrderIdBtn').addEventListener('click', async () => {
     const id = document.getElementById('confirmOrderId').textContent;
     const btn = document.getElementById('copyOrderIdBtn');
