@@ -194,14 +194,19 @@
   function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
 
   async function apiGet(path) {
-    const res = await fetch(`${API_BASE}${path}`, { credentials: 'include' });
+    const res = await fetch(`${API_BASE}${path}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+    });
     if (res.status === 401) { window.location.href = 'admin-login.html'; throw new Error('unauthorized'); }
     return res.json();
   }
   async function apiSend(path, method, body) {
     const res = await fetch(`${API_BASE}${path}`, {
-      method, credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+      },
       body: body ? JSON.stringify(body) : undefined,
     });
     if (res.status === 401) { window.location.href = 'admin-login.html'; throw new Error('unauthorized'); }
@@ -214,6 +219,7 @@
     if (name === 'orders') loadOrders();
     if (name === 'menu') loadMenuAdmin();
     if (name === 'stats') loadStats();
+    if (name === 'customers') loadCustomers();
   }
 
   async function loadStats() {
@@ -258,6 +264,40 @@
     await apiSend(`/admin/orders/${id}/status`, 'PATCH', { status });
     loadOrders();
     loadStats();
+  }
+
+  async function loadCustomers() {
+    const data = await apiGet('/admin/customers');
+    const list = document.getElementById('customersList');
+    if (data.customers.length === 0) {
+      list.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0;">No customers yet.</p>';
+      return;
+    }
+    list.innerHTML = data.customers.map(c => `
+      <div class="customer-card">
+        <div>
+          <div class="customer-name-row">
+            <span class="customer-name">${c.name}</span>
+            ${c.orderCount > 1 ? `<span class="returning-badge">Returning</span>` : ''}
+          </div>
+          <div class="customer-phone">${c.phone}</div>
+        </div>
+        <div class="customer-stats">
+          <div>
+            <div class="customer-stat-label">Orders</div>
+            <div class="customer-stat-val">${c.orderCount}</div>
+          </div>
+          <div>
+            <div class="customer-stat-label">Total Spent</div>
+            <div class="customer-stat-val">${formatNgn(c.totalSpent)}</div>
+          </div>
+          <div>
+            <div class="customer-stat-label">Last Order</div>
+            <div class="customer-stat-val" style="font-size:12.5px;">${new Date(c.lastOrderAt).toLocaleDateString()}</div>
+          </div>
+        </div>
+      </div>
+    `).join('');
   }
 
   async function loadMenuAdmin() {
@@ -324,7 +364,7 @@
     try {
       const res = await fetch(`${API_BASE}/admin/menu`, {
         method: 'POST',
-        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
         body: formData, // no Content-Type header — the browser sets the multipart boundary itself
       });
       if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
@@ -378,7 +418,7 @@
     try {
       const res = await fetch(`${API_BASE}/admin/menu/banana-bread`, {
         method: 'POST',
-        credentials: 'include',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
         body: formData,
       });
       if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
@@ -398,6 +438,7 @@
 
   document.getElementById('logoutBtn').addEventListener('click', async () => {
     await apiSend('/admin/logout', 'POST');
+    localStorage.removeItem('adminToken');
     window.location.href = 'admin-login.html';
   });
 
