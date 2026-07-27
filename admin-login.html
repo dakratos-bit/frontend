@@ -57,13 +57,13 @@
       const res = await fetch(`${API_BASE}/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
         body: JSON.stringify({ username, password }),
       });
       const data = await res.json();
       if (!res.ok) {
         msg.className = 'form-msg error'; msg.textContent = data.error || 'Login failed.'; msg.style.display = 'block';
       } else {
+        localStorage.setItem('adminToken', data.token);
         window.location.href = 'admin-dashboard.html';
       }
     } catch (err) {
