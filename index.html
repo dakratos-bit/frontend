@@ -16,7 +16,7 @@
     <li><a href="track.html">Track Order</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
-  <button class="nav-toggle" id="navToggle" onclick="toggleNav()" aria-label="Toggle menu">☰</button>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
 </nav>
 
 <section class="hero">
@@ -196,8 +196,6 @@
   function addToCart(id) {
     cart[id] = (cart[id] || 0) + 1;
     renderCart();
-    // Drawer intentionally does NOT auto-open here — customers keep browsing
-    // and open the cart themselves (via the floating button) when ready.
     flashCartButton();
   }
 
@@ -249,7 +247,6 @@
           <div>
             <div class="cart-line-name">${l.displayName}</div>
             <div class="cart-line-price">${formatNgn(l.unitPrice)} each</div>
-            function toggleNav() {document.getElementById('navLinks').classList.toggle('open');}
           </div>
           <div class="qty-controls">
             <button class="qty-btn" onclick="changeQty('${l.key}',-1)">&minus;</button>
@@ -288,6 +285,16 @@
     document.getElementById('deliveryBtn').classList.toggle('on', mode === 'delivery');
     document.getElementById('addressGroup').style.display = mode === 'delivery' ? 'block' : 'none';
   }
+
+  document.getElementById('navToggle').addEventListener('click', function () {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+
+  document.querySelectorAll('.nav-links a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.getElementById('navLinks').classList.remove('open');
+    });
+  });
 
   document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -329,8 +336,6 @@
           `Thanks, ${name.split(' ')[0]}! Your order total is ${formatNgn(data.order.total)}. We'll have it ready for ${fulfillment}.`;
         document.getElementById('confirmOrderId').textContent = data.order.id;
         document.getElementById('trackOrderLink').href = `track.html?orderId=${encodeURIComponent(data.order.id)}`;
-        // Saved locally so the customer can still find their order ID even if they
-        // close the confirmation popup before copying it down.
         try {
           localStorage.setItem('bk_lastOrderId', data.order.id);
           localStorage.setItem('bk_lastOrderPhone', phone);
@@ -348,9 +353,7 @@
   });
 
   loadMenu();
-  document.querySelectorAll('.nav-links a').forEach(a => {
-  a.addEventListener('click', () => document.getElementById('navLinks').classList.remove('open'));
-});
+
   document.getElementById('copyOrderIdBtn').addEventListener('click', async () => {
     const id = document.getElementById('confirmOrderId').textContent;
     const btn = document.getElementById('copyOrderIdBtn');
