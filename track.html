@@ -102,6 +102,15 @@
 
   function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
 
+  document.getElementById('navToggle').addEventListener('click', function () {
+    document.getElementById('navLinks').classList.toggle('open');
+  });
+  document.querySelectorAll('.nav-links a').forEach(function (a) {
+    a.addEventListener('click', function () {
+      document.getElementById('navLinks').classList.remove('open');
+    });
+  });
+
   // Prefill from a link like track.html?orderId=xxx, or fall back to the
   // last order saved locally by index.html if the customer arrives directly.
   const params = new URLSearchParams(window.location.search);
@@ -163,15 +172,6 @@
       timeline.style.display = 'none';
       return;
     }
-    document.getElementById('navToggle').addEventListener('click', function () {
-  document.getElementById('navLinks').classList.toggle('open');
-});
-
-document.querySelectorAll('.nav-links a').forEach(function (a) {
-  a.addEventListener('click', function () {
-    document.getElementById('navLinks').classList.remove('open');
-  });
-});
 
     cancelledBanner.style.display = 'none';
     timeline.style.display = 'flex';
