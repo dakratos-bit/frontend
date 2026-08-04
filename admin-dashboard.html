@@ -85,6 +85,26 @@
     .customer-stats { display: flex; gap: 22px; text-align: right; }
     .customer-stat-label { font-size: 11px; color: var(--muted); }
     .customer-stat-val { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; }
+
+    /* Edit order modal */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 400;
+      display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-card {
+      background: var(--card); border-radius: 16px; padding: 24px;
+      width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
+    }
+    .modal-card h3 { font-size: 19px; margin-bottom: 18px; }
+    .edit-line {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border);
+    }
+    .edit-line-name { font-size: 13.5px; font-weight: 600; flex: 1; }
+    .edit-line-price { font-size: 12px; color: var(--muted); }
+    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
+    .modal-actions .btn { flex: 1; }
   </style>
 </head>
 <body>
@@ -187,6 +207,69 @@
   </div>
 </div>
 
+<!-- EDIT MENU ITEM MODAL -->
+<div class="modal-overlay" id="editModalOverlay">
+  <div class="modal-card">
+    <h3>Edit Item</h3>
+    <form id="editItemForm">
+      <input type="hidden" id="editId"/>
+      <div class="form-group">
+        <label class="form-label">Name</label>
+        <input type="text" id="editName" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Category</label>
+        <input type="text" id="editCategory" required/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input type="text" id="editDescription"/>
+      </div>
+
+      <!-- Shown for flat-price items -->
+      <div class="form-group" id="editPriceGroup">
+        <label class="form-label">Price (NGN)</label>
+        <input type="text" id="editPrice" inputmode="numeric"/>
+      </div>
+
+      <!-- Shown for size-based items (Banana Bread), same size layout as the add form -->
+      <div class="form-group" id="editVariantsGroup" style="display:none;">
+        <label class="form-label">Sizes</label>
+        <div class="form-row" style="grid-template-columns:repeat(4,1fr);">
+          <div>
+            <label class="form-label">6-in-1</label>
+            <input type="text" id="editSixInOne" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="form-label">Big</label>
+            <input type="text" id="editBig" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="form-label">Medium</label>
+            <input type="text" id="editMedium" inputmode="numeric"/>
+          </div>
+          <div>
+            <label class="form-label">Small</label>
+            <input type="text" id="editSmall" inputmode="numeric"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Replace Photo (optional)</label>
+        <input type="file" id="editImage" accept="image/*"/>
+        <div id="editCurrentImageNote" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
+      </div>
+
+      <div class="form-msg" id="editItemMsg"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   const API_BASE = 'https://backend-t99k.onrender.com/api';
   const IMAGE_BASE = 'https://backend-t99k.onrender.com';
@@ -255,7 +338,10 @@
           </select>
         </div>
         <div class="order-items">${o.items.map(i => `${i.qty}x ${i.name}`).join(', ')}</div>
-        <div class="order-bottom"><span class="order-total">${formatNgn(o.total)}</span></div>
+        <div class="order-bottom">
+          <span class="order-total">${formatNgn(o.total)}</span>
+          <button class="icon-btn" onclick="openEditOrder('${o.id}')">Edit</button>
+        </div>
       </div>
     `).join('');
   }
@@ -321,6 +407,7 @@
             <input type="checkbox" ${item.available ? 'checked' : ''} onchange="toggleAvailable('${item.id}', this.checked)"/>
             Available
           </label>
+          <button class="icon-btn" onclick='openEditModal(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
           <button class="icon-btn danger" onclick="deleteItem('${item.id}')">Delete</button>
         </div>
       </div>
@@ -335,6 +422,91 @@
     await apiSend(`/admin/menu/${id}`, 'DELETE');
     loadMenuAdmin();
   }
+
+  function openEditModal(item) {
+    document.getElementById('editId').value = item.id;
+    document.getElementById('editName').value = item.name;
+    document.getElementById('editCategory').value = item.category;
+    document.getElementById('editDescription').value = item.description || '';
+    document.getElementById('editImage').value = '';
+    document.getElementById('editCurrentImageNote').textContent = item.imageUrl
+      ? 'Currently has a photo — choose a file above to replace it.'
+      : 'No photo set yet — choose a file above to add one.';
+    document.getElementById('editItemMsg').style.display = 'none';
+
+    const hasVariants = !!item.variants;
+    document.getElementById('editPriceGroup').style.display = hasVariants ? 'none' : 'block';
+    document.getElementById('editVariantsGroup').style.display = hasVariants ? 'block' : 'none';
+
+    if (hasVariants) {
+      const get = label => (item.variants.find(v => v.label === label) || {}).price || '';
+      document.getElementById('editSixInOne').value = get('6-in-1 Mini Loaves');
+      document.getElementById('editBig').value = get('Big');
+      document.getElementById('editMedium').value = get('Medium');
+      document.getElementById('editSmall').value = get('Small');
+      document.getElementById('editPrice').value = '';
+    } else {
+      document.getElementById('editPrice').value = item.price;
+      document.getElementById('editSixInOne').value = '';
+      document.getElementById('editBig').value = '';
+      document.getElementById('editMedium').value = '';
+      document.getElementById('editSmall').value = '';
+    }
+
+    document.getElementById('editModalOverlay').classList.add('show');
+  }
+
+  function closeEditModal() {
+    document.getElementById('editModalOverlay').classList.remove('show');
+  }
+
+  document.getElementById('editItemForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const id = document.getElementById('editId').value;
+    const msg = document.getElementById('editItemMsg');
+    msg.style.display = 'none';
+
+    const formData = new FormData();
+    formData.append('name', document.getElementById('editName').value.trim());
+    formData.append('category', document.getElementById('editCategory').value.trim());
+    formData.append('description', document.getElementById('editDescription').value.trim());
+
+    const usingVariants = document.getElementById('editVariantsGroup').style.display !== 'none';
+    if (usingVariants) {
+      formData.append('sixInOne', document.getElementById('editSixInOne').value.trim());
+      formData.append('big', document.getElementById('editBig').value.trim());
+      formData.append('medium', document.getElementById('editMedium').value.trim());
+      formData.append('small', document.getElementById('editSmall').value.trim());
+    } else {
+      formData.append('price', document.getElementById('editPrice').value.trim());
+    }
+
+    const imageFile = document.getElementById('editImage').files[0];
+    if (imageFile) formData.append('image', imageFile);
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/menu/${id}`, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
+        body: formData,
+      });
+      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
+      const data = await res.json();
+      if (data.error) {
+        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
+      } else {
+        closeEditModal();
+        loadMenuAdmin();
+      }
+    } catch (err) {
+      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save Changes';
+    }
+  });
 
   document.getElementById('addItemForm').addEventListener('submit', async (e) => {
     e.preventDefault();
