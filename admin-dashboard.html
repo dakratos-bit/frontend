@@ -276,6 +276,11 @@
 
   function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
 
+  function resolveImageUrl(url) {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `${IMAGE_BASE}${url}`;
+  }
+
   async function apiGet(path) {
     const res = await fetch(`${API_BASE}${path}`, {
       headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
@@ -393,7 +398,7 @@
       <div class="menu-admin-row">
         <div style="display:flex;align-items:center;gap:12px;">
           ${item.imageUrl
-            ? `<img src="${IMAGE_BASE}${item.imageUrl}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;" />`
+            ? `<img src="${resolveImageUrl(item.imageUrl)}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;" />`
             : `<div style="width:44px;height:44px;border-radius:8px;background:var(--cream-dark);flex-shrink:0;"></div>`}
           <div class="menu-admin-info">
             <h4>${item.name}</h4>
