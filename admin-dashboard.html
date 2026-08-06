@@ -421,6 +421,8 @@
       btn.disabled = false; btn.textContent = originalText;
     }
   }
+
+  async function loadMenuAdmin() {
     const data = await apiGet('/menu');
     const list = document.getElementById('menuAdminList');
     list.innerHTML = data.items.map(item => `
