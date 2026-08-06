@@ -404,6 +404,7 @@
             ${c.orderCount > 1 ? `<span class="returning-badge">Returning</span>` : ''}
           </div>
           <div class="customer-phone">${c.phone}</div>
+          ${c.email ? `<div class="customer-phone" style="margin-top:2px;">${c.email}</div>` : ''}
           <div class="customer-phone" style="margin-top:2px;">Last tracking ID: ${c.lastOrderId}</div>
         </div>
         <div class="customer-stats">
