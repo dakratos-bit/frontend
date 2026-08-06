@@ -12,7 +12,7 @@
 <nav>
   <a href="index.html" class="logo">The Baker <span>NG</span></a>
   <ul class="nav-links" id="navLinks">
-    <li><a href="#menu">Menu</a></li>
+    <li><a href="#" onclick="scrollToMenu(event)">Menu</a></li>
     <li><a href="track.html">Track Order</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
@@ -25,7 +25,7 @@
   <div class="hero-eyebrow">Fresh · Local · Made to Order</div>
   <h1>Good food,<br><em>made with heart</em></h1>
   <p>Order online for pickup or delivery. Everything on our menu is made fresh the same day.</p>
-  <a href="#menu" class="btn btn-primary btn-lg">View Menu</a>
+  <a href="#" onclick="scrollToMenu(event)" class="btn btn-primary btn-lg">View Menu</a>
 </section>
 
 <section class="menu-section" id="menu">
@@ -125,7 +125,7 @@
 
 <script>
   const API_BASE = 'https://backend-t99k.onrender.com/api';
-  const IMAGE_BASE = 'https://backend-t99k.onrender.com';
+  const IMAGE_BASE = 'https://backend-t99k.onrender.com/';
   let menuItems = [];
   let cart = {}; // { menuItemId: qty }
   let fulfillment = 'pickup';
@@ -133,6 +133,14 @@
   function toggleNav() {
     document.getElementById('navLinks').classList.toggle('open');
     document.getElementById('navToggle').classList.toggle('open');
+  }
+
+  function scrollToMenu(e) {
+    e.preventDefault();
+    document.getElementById('menu').scrollIntoView({ behavior: 'smooth' });
+    // Close the mobile nav dropdown too, if it was open
+    document.getElementById('navLinks').classList.remove('open');
+    document.getElementById('navToggle').classList.remove('open');
   }
 
   function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
