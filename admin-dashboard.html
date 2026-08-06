@@ -144,6 +144,9 @@
 
   <!-- CUSTOMERS TAB -->
   <div class="tab-panel" id="tab-customers">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
+      <button class="btn btn-ghost" style="font-size:12.5px;padding:8px 16px;" onclick="exportCustomersSql()">Download as SQL</button>
+    </div>
     <div id="customersList"></div>
   </div>
 
@@ -391,7 +394,33 @@
     `).join('');
   }
 
-  async function loadMenuAdmin() {
+  async function exportCustomersSql() {
+    const btn = event.target;
+    const originalText = btn.textContent;
+    btn.disabled = true; btn.textContent = 'Preparing...';
+
+    try {
+      const res = await fetch(`${API_BASE}/admin/customers/export`, {
+        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
+      });
+      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
+      if (!res.ok) throw new Error('Export failed');
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `customers-export-${new Date().toISOString().slice(0,10)}.sql`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert('Could not download the export. Try again.');
+    } finally {
+      btn.disabled = false; btn.textContent = originalText;
+    }
+  }
     const data = await apiGet('/menu');
     const list = document.getElementById('menuAdminList');
     list.innerHTML = data.items.map(item => `
