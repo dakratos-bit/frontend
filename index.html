@@ -3,718 +3,374 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Baker NG – Admin Dashboard</title>
+  <title>The Baker NG – Order Online</title>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css"/>
-  <style>
-    .dash-wrap { padding: 36px 6% 80px; max-width: 1100px; margin: 0 auto; }
-    .dash-loading { text-align: center; padding: 100px 0; color: var(--muted); }
-    .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
-    .dash-title { font-size: 28px; }
-    .logout-link { color: var(--terracotta); text-decoration: none; font-size: 13.5px; font-weight: 600; cursor: pointer; }
-
-    .tab-row { display: flex; gap: 8px; margin-bottom: 28px; border-bottom: 1px solid var(--border); }
-    .tab-btn {
-      padding: 10px 18px; background: none; border: none; cursor: pointer;
-      font-size: 14px; font-weight: 600; color: var(--muted);
-      border-bottom: 2px solid transparent; margin-bottom: -1px;
-    }
-    .tab-btn.on { color: var(--terracotta); border-bottom-color: var(--terracotta); }
-    .tab-panel { display: none; }
-    .tab-panel.on { display: block; }
-
-    /* Stats */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 28px; }
-    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-    .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-    .stat-val { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; }
-    .top-items-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-    .top-items-card h4 { font-size: 15px; margin-bottom: 14px; }
-    .top-item-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13.5px; }
-    .top-item-row:last-child { border-bottom: none; }
-
-    /* Orders */
-    .order-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin-bottom: 14px; }
-    .order-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
-    .order-cust { font-weight: 700; font-size: 15px; }
-    .order-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
-    .order-items { font-size: 13.5px; color: var(--muted); margin-bottom: 10px; }
-    .order-bottom { display: flex; justify-content: space-between; align-items: center; }
-    .order-total { font-weight: 700; font-family: 'Fraunces', serif; }
-    .status-select {
-      font-size: 12.5px; font-weight: 600; padding: 6px 10px; border-radius: 8px;
-      border: 1px solid var(--border); background: var(--cream); cursor: pointer;
-    }
-    .status-pending { color: var(--terracotta); }
-    .status-preparing { color: var(--gold); }
-    .status-ready, .status-completed { color: var(--green); }
-    .status-cancelled { color: var(--muted); }
-
-    /* Menu management */
-    .menu-admin-row {
-      display: flex; justify-content: space-between; align-items: center;
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      padding: 14px 18px; margin-bottom: 10px; gap: 12px;
-    }
-    .menu-admin-info h4 { font-size: 15px; }
-    .menu-admin-info span { font-size: 12.5px; color: var(--muted); }
-    .menu-admin-actions { display: flex; gap: 8px; align-items: center; }
-    .icon-btn { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; font-size: 12.5px; cursor: pointer; }
-    .icon-btn.danger { color: var(--red); border-color: rgba(193,80,46,0.3); }
-    .avail-toggle { font-size: 12px; }
-
-    .add-item-form {
-      background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 20px;
-    }
-    .add-item-form h4 { font-size: 15px; margin-bottom: 14px; }
-    .form-row { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    @media (max-width: 700px) { .form-row { grid-template-columns: 1fr; } }
-
-    /* Customers */
-    .customer-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-      padding: 16px 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;
-    }
-    .customer-name-row { display: flex; align-items: center; gap: 8px; }
-    .customer-name { font-weight: 700; font-size: 15px; }
-    .customer-phone { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
-    .returning-badge {
-      font-size: 11px; font-weight: 700; color: var(--olive);
-      background: rgba(95,107,62,0.12); padding: 3px 10px; border-radius: 999px;
-    }
-    .customer-stats { display: flex; gap: 22px; text-align: right; }
-    .customer-stat-label { font-size: 11px; color: var(--muted); }
-    .customer-stat-val { font-family: 'Fraunces', serif; font-weight: 700; font-size: 16px; }
-
-    /* Edit order modal */
-    .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 400;
-      display: none; align-items: center; justify-content: center; padding: 20px;
-    }
-    .modal-overlay.show { display: flex; }
-    .modal-card {
-      background: var(--card); border-radius: 16px; padding: 24px;
-      width: 100%; max-width: 460px; max-height: 88vh; overflow-y: auto;
-    }
-    .modal-card h3 { font-size: 19px; margin-bottom: 18px; }
-    .edit-line {
-      display: flex; align-items: center; justify-content: space-between;
-      gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border);
-    }
-    .edit-line-name { font-size: 13.5px; font-weight: 600; flex: 1; }
-    .edit-line-price { font-size: 12px; color: var(--muted); }
-    .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
-    .modal-actions .btn { flex: 1; }
-  </style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html" class="logo">The Baker <span>NG</span> <span style="color:var(--muted);font-style:normal;font-size:13px;">Admin</span></a>
-  <div><a class="logout-link" id="logoutBtn">Log Out</a></div>
+  <a href="index.html" class="logo">The Baker <span>NG</span></a>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#menu">Menu</a></li>
+    <li><a href="track.html">Track Order</a></li>
+    <li><a href="contact.html">Contact</a></li>
+  </ul>
+  <button class="nav-toggle" id="navToggle" onclick="toggleNav()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
-<div id="loadingState" class="dash-loading">Checking session...</div>
+<section class="hero">
+  <div class="hero-eyebrow">Fresh · Local · Made to Order</div>
+  <h1>Good food,<br><em>made with heart</em></h1>
+  <p>Order online for pickup or delivery. Everything on our menu is made fresh the same day.</p>
+  <a href="#menu" class="btn btn-primary btn-lg">View Menu</a>
+</section>
 
-<div class="dash-wrap" id="dashContent" style="display:none;">
-  <div class="dash-header">
-    <div class="dash-title">Dashboard</div>
+<section class="menu-section" id="menu">
+  <div id="menuContent">
+    <p style="text-align:center;color:var(--muted);">Loading menu...</p>
   </div>
+</section>
 
-  <div class="tab-row">
-    <button class="tab-btn on" data-tab="stats" onclick="switchTab('stats')">Overview</button>
-    <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Orders</button>
-    <button class="tab-btn" data-tab="customers" onclick="switchTab('customers')">Customers</button>
-    <button class="tab-btn" data-tab="menu" onclick="switchTab('menu')">Menu</button>
-    <button class="tab-btn" data-tab="account" onclick="switchTab('account')">Account</button>
-  </div>
+<button class="cart-toggle" id="cartToggle" onclick="openCart()">
+  🛒 <span id="cartCount">0</span> · <span id="cartTotalMini">₦0</span>
+</button>
 
-  <!-- STATS TAB -->
-  <div class="tab-panel on" id="tab-stats">
-    <div class="stats-grid" id="statsGrid"></div>
-    <div class="top-items-card">
-      <h4>Top Selling Items</h4>
-      <div id="topItemsList"></div>
+<div class="overlay" id="overlay" onclick="closeAllPanels()"></div>
+
+<div class="cart-drawer" id="cartDrawer">
+
+  <!-- CART VIEW -->
+  <div id="cartView">
+    <div class="cart-header">
+      <h3>Your Order</h3>
+      <button class="cart-close" onclick="closeAllPanels()">&times;</button>
+    </div>
+    <div class="cart-items" id="cartItems">
+      <div class="cart-empty">Your cart is empty.<br>Add something tasty from the menu.</div>
+    </div>
+    <div class="cart-footer">
+      <div class="cart-total-row"><span>Total</span><span id="cartTotal">₦0</span></div>
+      <button class="btn btn-primary" style="width:100%;padding:13px;" id="checkoutBtn" onclick="showCheckout()" disabled>Checkout</button>
     </div>
   </div>
 
-  <!-- ORDERS TAB -->
-  <div class="tab-panel" id="tab-orders">
-    <div id="ordersList"></div>
-  </div>
-
-  <!-- CUSTOMERS TAB -->
-  <div class="tab-panel" id="tab-customers">
-    <div style="display:flex;justify-content:flex-end;margin-bottom:14px;">
-      <button class="btn btn-ghost" style="font-size:12.5px;padding:8px 16px;" onclick="exportCustomersSql()">Download as SQL</button>
+  <!-- CHECKOUT VIEW -->
+  <div id="checkoutView" class="checkout-panel" style="flex:1;overflow-y:auto;">
+    <div class="cart-header">
+      <h3>Checkout</h3>
+      <button class="cart-close" onclick="closeAllPanels()">&times;</button>
     </div>
-    <div id="customersList"></div>
-  </div>
+    <form id="checkoutForm" style="padding:20px 24px;" novalidate>
+      <button type="button" class="back-link" onclick="showCart()">&larr; Back to cart</button>
 
-  <!-- MENU TAB -->
-  <div class="tab-panel" id="tab-menu">
-    <div class="add-item-form">
-      <h4>Add Menu Item</h4>
-      <form id="addItemForm">
-        <div class="form-row">
-          <input type="text" id="newName" placeholder="Item name" required/>
-          <input type="text" id="newCategory" placeholder="Category (e.g. Mains)" required/>
-          <input type="text" id="newPrice" placeholder="Price (NGN)" inputmode="numeric" required/>
-        </div>
-        <div class="form-row" style="grid-template-columns:1fr;">
-          <input type="text" id="newDescription" placeholder="Short description (optional)"/>
-        </div>
-        <div class="form-row" style="grid-template-columns:1fr;">
-          <label class="form-label">Photo (optional)</label>
-          <input type="file" id="newImage" accept="image/*"/>
-        </div>
-        <button type="submit" class="btn btn-primary" style="padding:10px 20px;">Add Item</button>
-        <div class="form-msg" id="addItemMsg"></div>
-      </form>
-    </div>
-
-    <div class="add-item-form">
-      <h4>Add Banana Bread Topping</h4>
-      <p style="font-size:12.5px;color:var(--muted);margin-bottom:14px;margin-top:-8px;">Leave a size blank if that topping doesn't come in that size.</p>
-      <form id="addBananaForm">
-        <div class="form-row" style="grid-template-columns:2fr 1fr;">
-          <input type="text" id="bbName" placeholder="Topping name (e.g. Red Velvet)" required/>
-          <input type="text" id="bbDescription" placeholder="Description (optional)"/>
-        </div>
-        <div class="form-row" style="grid-template-columns:repeat(4,1fr);">
-          <div>
-            <label class="form-label">6-in-1 Mini Loaves</label>
-            <input type="text" id="bbSixInOne" placeholder="₦" inputmode="numeric"/>
-          </div>
-          <div>
-            <label class="form-label">Big</label>
-            <input type="text" id="bbBig" placeholder="₦" inputmode="numeric"/>
-          </div>
-          <div>
-            <label class="form-label">Medium</label>
-            <input type="text" id="bbMedium" placeholder="₦" inputmode="numeric"/>
-          </div>
-          <div>
-            <label class="form-label">Small</label>
-            <input type="text" id="bbSmall" placeholder="₦" inputmode="numeric"/>
-          </div>
-        </div>
-        <div class="form-row" style="grid-template-columns:1fr;">
-          <label class="form-label">Photo (optional)</label>
-          <input type="file" id="bbImage" accept="image/*"/>
-        </div>
-        <button type="submit" class="btn btn-primary" style="padding:10px 20px;">Add Banana Bread Topping</button>
-        <div class="form-msg" id="addBananaMsg"></div>
-      </form>
-    </div>
-    <div id="menuAdminList"></div>
-  </div>
-
-  <!-- ACCOUNT TAB -->
-  <div class="tab-panel" id="tab-account">
-    <div class="add-item-form" style="max-width:420px;">
-      <h4>Change Username / Password</h4>
-      <form id="accountForm">
-        <div class="form-group">
-          <label class="form-label">Current Password</label>
-          <input type="password" id="accCurrentPassword" placeholder="Required to confirm changes" required/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">New Username (optional)</label>
-          <input type="text" id="accNewUsername" placeholder="Leave blank to keep current username"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">New Password (optional)</label>
-          <input type="password" id="accNewPassword" placeholder="Leave blank to keep current password"/>
-        </div>
-        <button type="submit" class="btn btn-primary" style="padding:10px 20px;">Save Changes</button>
-        <div class="form-msg" id="accountMsg"></div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT MENU ITEM MODAL -->
-<div class="modal-overlay" id="editModalOverlay">
-  <div class="modal-card">
-    <h3>Edit Item</h3>
-    <form id="editItemForm">
-      <input type="hidden" id="editId"/>
       <div class="form-group">
-        <label class="form-label">Name</label>
-        <input type="text" id="editName" required/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Category</label>
-        <input type="text" id="editCategory" required/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Description</label>
-        <input type="text" id="editDescription"/>
-      </div>
-
-      <!-- Shown for flat-price items -->
-      <div class="form-group" id="editPriceGroup">
-        <label class="form-label">Price (NGN)</label>
-        <input type="text" id="editPrice" inputmode="numeric"/>
-      </div>
-
-      <!-- Shown for size-based items (Banana Bread), same size layout as the add form -->
-      <div class="form-group" id="editVariantsGroup" style="display:none;">
-        <label class="form-label">Sizes</label>
-        <div class="form-row" style="grid-template-columns:repeat(4,1fr);">
-          <div>
-            <label class="form-label">6-in-1</label>
-            <input type="text" id="editSixInOne" inputmode="numeric"/>
-          </div>
-          <div>
-            <label class="form-label">Big</label>
-            <input type="text" id="editBig" inputmode="numeric"/>
-          </div>
-          <div>
-            <label class="form-label">Medium</label>
-            <input type="text" id="editMedium" inputmode="numeric"/>
-          </div>
-          <div>
-            <label class="form-label">Small</label>
-            <input type="text" id="editSmall" inputmode="numeric"/>
-          </div>
-        </div>
+        <label class="form-label">Full Name</label>
+        <input type="text" id="custName" placeholder="Your name" required/>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Replace Photo (optional)</label>
-        <input type="file" id="editImage" accept="image/*"/>
-        <div id="editCurrentImageNote" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
+        <label class="form-label">Phone Number</label>
+        <input type="tel" id="custPhone" placeholder="0801 234 5678" required/>
       </div>
 
-      <div class="form-msg" id="editItemMsg"></div>
-      <div class="modal-actions">
-        <button type="button" class="btn btn-ghost" onclick="closeEditModal()">Cancel</button>
-        <button type="submit" class="btn btn-primary">Save Changes</button>
+      <div class="form-group">
+        <label class="form-label">Email (optional — for order updates)</label>
+        <input type="email" id="custEmail" placeholder="you@example.com"/>
       </div>
+
+      <div class="form-group">
+        <label class="form-label">Fulfillment</label>
+        <div class="fulfillment-toggle">
+          <button type="button" class="on" id="pickupBtn" onclick="setFulfillment('pickup')">Pickup</button>
+          <button type="button" id="deliveryBtn" onclick="setFulfillment('delivery')">Delivery</button>
+        </div>
+      </div>
+
+      <div class="form-group" id="addressGroup" style="display:none;">
+        <label class="form-label">Delivery Address</label>
+        <textarea id="custAddress" rows="2" placeholder="Street, area, landmark"></textarea>
+      </div>
+
+      <div class="cart-total-row"><span>Total</span><span id="checkoutTotal">₦0</span></div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;padding:13px;">Place Order</button>
+      <div class="form-msg" id="checkoutMsg"></div>
     </form>
   </div>
+
+  <!-- CONFIRMATION VIEW -->
+  <div id="confirmView" class="confirm-panel">
+    <div class="confirm-icon">🎉</div>
+    <h3>Order placed!</h3>
+    <p id="confirmText"></p>
+    <div style="background:var(--cream-dark);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+      <div style="font-size:11.5px;color:var(--muted);margin-bottom:6px;">YOUR ORDER ID — SAVE THIS TO TRACK YOUR ORDER</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+        <strong id="confirmOrderId" style="font-size:15px;word-break:break-all;">-</strong>
+        <button type="button" id="copyOrderIdBtn" class="btn btn-ghost" style="padding:6px 14px;font-size:12px;white-space:nowrap;">Copy</button>
+      </div>
+    </div>
+    <a href="#" id="trackOrderLink" class="btn btn-ghost" style="margin-right:8px;">Track This Order</a>
+    <button class="btn btn-primary" onclick="closeAllPanels()">Done</button>
+  </div>
+
 </div>
+
+<footer>
+  &copy; 2026 The Baker NG. Made fresh, ordered easy.
+</footer>
 
 <script>
   const API_BASE = 'https://backend-t99k.onrender.com/api';
   const IMAGE_BASE = 'https://backend-t99k.onrender.com';
+  let menuItems = [];
+  let cart = {}; // { menuItemId: qty }
+  let fulfillment = 'pickup';
+
+  function toggleNav() {
+    document.getElementById('navLinks').classList.toggle('open');
+    document.getElementById('navToggle').classList.toggle('open');
+  }
 
   function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
 
+  // Cloudinary returns a full https URL, but old items (uploaded before the
+  // Cloudinary switch) may still have an old relative /uploads/... path
+  // saved — those are broken now regardless, but this avoids mangling the
+  // new full URLs by double-prepending IMAGE_BASE onto them.
   function resolveImageUrl(url) {
     if (!url) return null;
     return url.startsWith('http') ? url : `${IMAGE_BASE}${url}`;
   }
 
-  async function apiGet(path) {
-    const res = await fetch(`${API_BASE}${path}`, {
-      headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-    });
-    if (res.status === 401) { window.location.href = 'admin-login.html'; throw new Error('unauthorized'); }
-    return res.json();
-  }
-  async function apiSend(path, method, body) {
-    const res = await fetch(`${API_BASE}${path}`, {
-      method,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-      },
-      body: body ? JSON.stringify(body) : undefined,
-    });
-    if (res.status === 401) { window.location.href = 'admin-login.html'; throw new Error('unauthorized'); }
-    return res.json();
+  async function loadMenu() {
+    try {
+      const res = await fetch(`${API_BASE}/menu`);
+      const data = await res.json();
+      menuItems = data.items;
+      renderMenu();
+    } catch (err) {
+      document.getElementById('menuContent').innerHTML = '<p style="text-align:center;color:var(--muted);">Could not load the menu. Is the backend running?</p>';
+    }
   }
 
-  function switchTab(name) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('on', p.id === `tab-${name}`));
-    if (name === 'orders') loadOrders();
-    if (name === 'menu') loadMenuAdmin();
-    if (name === 'stats') loadStats();
-    if (name === 'customers') loadCustomers();
+  function renderMenu() {
+    const categories = [...new Set(menuItems.map(i => i.category))];
+    const container = document.getElementById('menuContent');
+    container.innerHTML = categories.map(cat => `
+      <h2 class="category-title">${cat}</h2>
+      <div class="menu-grid">
+        ${menuItems.filter(i => i.category === cat).map(item => `
+          <div class="menu-card">
+            ${item.imageUrl
+              ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${item.name}"/>`
+              : `<div class="menu-card-img menu-card-img-placeholder">🍽️</div>`}
+            <div class="menu-card-top">
+              <h4>${item.name}</h4>
+              ${item.variants ? '' : `<span class="price">${formatNgn(item.price)}</span>`}
+            </div>
+            <p>${item.description || ''}</p>
+            ${item.variants ? renderVariantPicker(item) : `
+              <div class="add-row">
+                ${item.available
+                  ? `<button class="btn btn-ghost" style="font-size:13px;padding:8px 16px;" onclick="addToCart('${item.id}')">Add to cart</button>`
+                  : `<span class="unavailable-tag">Currently unavailable</span>`}
+              </div>
+            `}
+          </div>
+        `).join('')}
+      </div>
+    `).join('');
   }
 
-  async function loadStats() {
-    const stats = await apiGet('/admin/stats');
-    document.getElementById('statsGrid').innerHTML = `
-      <div class="stat-card"><div class="stat-label">Today's Revenue</div><div class="stat-val">${formatNgn(stats.todaysRevenue)}</div></div>
-      <div class="stat-card"><div class="stat-label">Today's Orders</div><div class="stat-val">${stats.todaysOrders}</div></div>
-      <div class="stat-card"><div class="stat-label">Total Revenue</div><div class="stat-val">${formatNgn(stats.totalRevenue)}</div></div>
-      <div class="stat-card"><div class="stat-label">Pending Orders</div><div class="stat-val">${stats.pendingOrders}</div></div>
+  function renderVariantPicker(item) {
+    if (!item.available) {
+      return `<div class="add-row"><span class="unavailable-tag">Currently unavailable</span></div>`;
+    }
+    return `
+      <div class="variant-row">
+        ${item.variants.map(v => `
+          <button class="variant-btn" onclick="addVariantToCart('${item.id}', '${v.label.replace(/'/g, "\\'")}')">
+            <span>${v.label}</span>
+            <span class="variant-price">${formatNgn(v.price)}</span>
+          </button>
+        `).join('')}
+      </div>
     `;
-    document.getElementById('topItemsList').innerHTML = stats.topItems.length
-      ? stats.topItems.map(i => `<div class="top-item-row"><span>${i.name}</span><span>${i.qty} sold</span></div>`).join('')
-      : '<p style="color:var(--muted);font-size:13.5px;">No orders yet.</p>';
   }
 
-  async function loadOrders() {
-    const data = await apiGet('/admin/orders');
-    const list = document.getElementById('ordersList');
-    if (data.orders.length === 0) {
-      list.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0;">No orders yet.</p>';
-      return;
-    }
-    list.innerHTML = data.orders.map(o => `
-      <div class="order-card">
-        <div class="order-top">
-          <div>
-            <div class="order-cust">${o.customerName}</div>
-            <div class="order-meta">Tracking ID: ${o.id}</div>
-            <div class="order-meta">${o.phone} · ${o.fulfillment}${o.address ? ' · ' + o.address : ''}</div>
-            <div class="order-meta">${new Date(o.createdAt).toLocaleString()}</div>
-          </div>
-          <select class="status-select status-${o.status}" onchange="updateStatus('${o.id}', this.value)">
-            ${['pending','preparing','ready','completed','cancelled'].map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${s}</option>`).join('')}
-          </select>
-        </div>
-        <div class="order-items">${o.items.map(i => `${i.qty}x ${i.name}`).join(', ')}</div>
-        <div class="order-bottom">
-          <span class="order-total">${formatNgn(o.total)}</span>
-        </div>
-      </div>
-    `).join('');
+  function addVariantToCart(id, variantLabel) {
+    const key = `${id}::${variantLabel}`;
+    cart[key] = (cart[key] || 0) + 1;
+    renderCart();
+    flashCartButton();
   }
 
-  async function updateStatus(id, status) {
-    await apiSend(`/admin/orders/${id}/status`, 'PATCH', { status });
-    loadOrders();
-    loadStats();
+  function addToCart(id) {
+    cart[id] = (cart[id] || 0) + 1;
+    renderCart();
+    flashCartButton();
   }
 
-  async function loadCustomers() {
-    const data = await apiGet('/admin/customers');
-    const list = document.getElementById('customersList');
-    if (data.customers.length === 0) {
-      list.innerHTML = '<p style="color:var(--muted);text-align:center;padding:40px 0;">No customers yet.</p>';
-      return;
-    }
-    list.innerHTML = data.customers.map(c => `
-      <div class="customer-card">
-        <div>
-          <div class="customer-name-row">
-            <span class="customer-name">${c.name}</span>
-            ${c.orderCount > 1 ? `<span class="returning-badge">Returning</span>` : ''}
-          </div>
-          <div class="customer-phone">${c.phone}</div>
-          <div class="customer-phone" style="margin-top:2px;">Last tracking ID: ${c.lastOrderId}</div>
-        </div>
-        <div class="customer-stats">
-          <div>
-            <div class="customer-stat-label">Orders</div>
-            <div class="customer-stat-val">${c.orderCount}</div>
-          </div>
-          <div>
-            <div class="customer-stat-label">Total Spent</div>
-            <div class="customer-stat-val">${formatNgn(c.totalSpent)}</div>
-          </div>
-          <div>
-            <div class="customer-stat-label">Last Order</div>
-            <div class="customer-stat-val" style="font-size:12.5px;">${new Date(c.lastOrderAt).toLocaleDateString()}</div>
-          </div>
-        </div>
-      </div>
-    `).join('');
+  function flashCartButton() {
+    const btn = document.getElementById('cartToggle');
+    btn.style.transform = 'scale(1.08)';
+    setTimeout(() => { btn.style.transform = 'scale(1)'; }, 180);
+  }
+  function changeQty(id, delta) {
+    cart[id] = (cart[id] || 0) + delta;
+    if (cart[id] <= 0) delete cart[id];
+    renderCart();
   }
 
-  async function exportCustomersSql() {
-    const btn = event.target;
-    const originalText = btn.textContent;
-    btn.disabled = true; btn.textContent = 'Preparing...';
-
-    try {
-      const res = await fetch(`${API_BASE}/admin/customers/export`, {
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-      });
-      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
-      if (!res.ok) throw new Error('Export failed');
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `customers-export-${new Date().toISOString().slice(0,10)}.sql`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      alert('Could not download the export. Try again.');
-    } finally {
-      btn.disabled = false; btn.textContent = originalText;
-    }
-  }
-
-  async function loadMenuAdmin() {
-    const data = await apiGet('/menu');
-    const list = document.getElementById('menuAdminList');
-    list.innerHTML = data.items.map(item => `
-      <div class="menu-admin-row">
-        <div style="display:flex;align-items:center;gap:12px;">
-          ${item.imageUrl
-            ? `<img src="${resolveImageUrl(item.imageUrl)}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;flex-shrink:0;" />`
-            : `<div style="width:44px;height:44px;border-radius:8px;background:var(--cream-dark);flex-shrink:0;"></div>`}
-          <div class="menu-admin-info">
-            <h4>${item.name}</h4>
-            <span>${item.category} · ${item.variants
-              ? item.variants.map(v => `${v.label}: ${formatNgn(v.price)}`).join(' · ')
-              : formatNgn(item.price)}</span>
-          </div>
-        </div>
-        <div class="menu-admin-actions">
-          <label class="avail-toggle">
-            <input type="checkbox" ${item.available ? 'checked' : ''} onchange="toggleAvailable('${item.id}', this.checked)"/>
-            Available
-          </label>
-          <button class="icon-btn" onclick='openEditModal(${JSON.stringify(item).replace(/'/g, "&#39;")})'>Edit</button>
-          <button class="icon-btn danger" onclick="deleteItem('${item.id}')">Delete</button>
-        </div>
-      </div>
-    `).join('');
-  }
-
-  async function toggleAvailable(id, available) {
-    await apiSend(`/admin/menu/${id}`, 'PUT', { available });
-  }
-  async function deleteItem(id) {
-    if (!confirm('Remove this item from the menu?')) return;
-    await apiSend(`/admin/menu/${id}`, 'DELETE');
-    loadMenuAdmin();
-  }
-
-  function openEditModal(item) {
-    document.getElementById('editId').value = item.id;
-    document.getElementById('editName').value = item.name;
-    document.getElementById('editCategory').value = item.category;
-    document.getElementById('editDescription').value = item.description || '';
-    document.getElementById('editImage').value = '';
-    document.getElementById('editCurrentImageNote').textContent = item.imageUrl
-      ? 'Currently has a photo — choose a file above to replace it.'
-      : 'No photo set yet — choose a file above to add one.';
-    document.getElementById('editItemMsg').style.display = 'none';
-
-    const hasVariants = !!item.variants;
-    document.getElementById('editPriceGroup').style.display = hasVariants ? 'none' : 'block';
-    document.getElementById('editVariantsGroup').style.display = hasVariants ? 'block' : 'none';
-
-    if (hasVariants) {
-      const get = label => (item.variants.find(v => v.label === label) || {}).price || '';
-      document.getElementById('editSixInOne').value = get('6-in-1 Mini Loaves');
-      document.getElementById('editBig').value = get('Big');
-      document.getElementById('editMedium').value = get('Medium');
-      document.getElementById('editSmall').value = get('Small');
-      document.getElementById('editPrice').value = '';
-    } else {
-      document.getElementById('editPrice').value = item.price;
-      document.getElementById('editSixInOne').value = '';
-      document.getElementById('editBig').value = '';
-      document.getElementById('editMedium').value = '';
-      document.getElementById('editSmall').value = '';
-    }
-
-    document.getElementById('editModalOverlay').classList.add('show');
-  }
-
-  function closeEditModal() {
-    document.getElementById('editModalOverlay').classList.remove('show');
-  }
-
-  document.getElementById('editItemForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const id = document.getElementById('editId').value;
-    const msg = document.getElementById('editItemMsg');
-    msg.style.display = 'none';
-
-    const formData = new FormData();
-    formData.append('name', document.getElementById('editName').value.trim());
-    formData.append('category', document.getElementById('editCategory').value.trim());
-    formData.append('description', document.getElementById('editDescription').value.trim());
-
-    const usingVariants = document.getElementById('editVariantsGroup').style.display !== 'none';
-    if (usingVariants) {
-      formData.append('sixInOne', document.getElementById('editSixInOne').value.trim());
-      formData.append('big', document.getElementById('editBig').value.trim());
-      formData.append('medium', document.getElementById('editMedium').value.trim());
-      formData.append('small', document.getElementById('editSmall').value.trim());
-    } else {
-      formData.append('price', document.getElementById('editPrice').value.trim());
-    }
-
-    const imageFile = document.getElementById('editImage').files[0];
-    if (imageFile) formData.append('image', imageFile);
-
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Saving...';
-
-    try {
-      const res = await fetch(`${API_BASE}/admin/menu/${id}`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-        body: formData,
-      });
-      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
-      const data = await res.json();
-      if (data.error) {
-        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
-      } else {
-        closeEditModal();
-        loadMenuAdmin();
+  function cartLines() {
+    return Object.entries(cart).map(([key, qty]) => {
+      const [id, variantLabel] = key.split('::');
+      const item = menuItems.find(i => i.id === id);
+      if (!item) return null;
+      if (variantLabel) {
+        const variant = (item.variants || []).find(v => v.label === variantLabel);
+        if (!variant) return null;
+        return { key, item, qty, variantLabel, displayName: `${item.name} (${variant.label})`, unitPrice: variant.price };
       }
-    } catch (err) {
-      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Save Changes';
-    }
-  });
+      return { key, item, qty, variantLabel: null, displayName: item.name, unitPrice: item.price };
+    }).filter(Boolean);
+  }
 
-  document.getElementById('addItemForm').addEventListener('submit', async (e) => {
+  function cartTotal() {
+    return cartLines().reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
+  }
+
+  function renderCart() {
+    const lines = cartLines();
+    const itemsEl = document.getElementById('cartItems');
+    const total = cartTotal();
+    const count = lines.reduce((s, l) => s + l.qty, 0);
+
+    document.getElementById('cartCount').textContent = count;
+    document.getElementById('cartTotalMini').textContent = formatNgn(total);
+    document.getElementById('cartTotal').textContent = formatNgn(total);
+    document.getElementById('checkoutTotal').textContent = formatNgn(total);
+    document.getElementById('checkoutBtn').disabled = lines.length === 0;
+
+    itemsEl.innerHTML = lines.length === 0
+      ? '<div class="cart-empty">Your cart is empty.<br>Add something tasty from the menu.</div>'
+      : lines.map(l => `
+        <div class="cart-line">
+          <div>
+            <div class="cart-line-name">${l.displayName}</div>
+            <div class="cart-line-price">${formatNgn(l.unitPrice)} each</div>
+          </div>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty('${l.key}',-1)">&minus;</button>
+            <span>${l.qty}</span>
+            <button class="qty-btn" onclick="changeQty('${l.key}',1)">+</button>
+          </div>
+        </div>
+      `).join('');
+  }
+
+  function openCart() {
+    document.getElementById('cartDrawer').classList.add('open');
+    document.getElementById('overlay').classList.add('show');
+    showCart();
+  }
+  function closeAllPanels() {
+    document.getElementById('cartDrawer').classList.remove('open');
+    document.getElementById('overlay').classList.remove('show');
+  }
+  function showCart() {
+    document.getElementById('cartView').style.display = 'flex';
+    document.getElementById('cartView').style.flex = '1';
+    document.getElementById('cartView').style.flexDirection = 'column';
+    document.getElementById('checkoutView').classList.remove('show');
+    document.getElementById('confirmView').classList.remove('show');
+  }
+  function showCheckout() {
+    if (cartLines().length === 0) return;
+    document.getElementById('cartView').style.display = 'none';
+    document.getElementById('checkoutView').classList.add('show');
+    document.getElementById('confirmView').classList.remove('show');
+  }
+  function setFulfillment(mode) {
+    fulfillment = mode;
+    document.getElementById('pickupBtn').classList.toggle('on', mode === 'pickup');
+    document.getElementById('deliveryBtn').classList.toggle('on', mode === 'delivery');
+    document.getElementById('addressGroup').style.display = mode === 'delivery' ? 'block' : 'none';
+  }
+
+  document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('newName').value.trim();
-    const category = document.getElementById('newCategory').value.trim();
-    const price = parseFloat(document.getElementById('newPrice').value);
-    const description = document.getElementById('newDescription').value.trim();
-    const imageFile = document.getElementById('newImage').files[0];
-    const msg = document.getElementById('addItemMsg');
+    const name = document.getElementById('custName').value.trim();
+    const phone = document.getElementById('custPhone').value.trim();
+    const email = document.getElementById('custEmail').value.trim();
+    const address = document.getElementById('custAddress').value.trim();
+    const msg = document.getElementById('checkoutMsg');
     msg.style.display = 'none';
 
-    if (!name || !category || !price || price <= 0) {
-      msg.className = 'form-msg error'; msg.textContent = 'Fill in name, category, and a valid price.'; msg.style.display = 'block';
-      return;
-    }
+    if (!name) { msg.className = 'form-msg error'; msg.textContent = 'Enter your name.'; msg.style.display = 'block'; return; }
+    if (!/^\d{7,15}$/.test(phone.replace(/\D/g, ''))) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid phone number.'; msg.style.display = 'block'; return; }
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid email or leave it blank.'; msg.style.display = 'block'; return; }
+    if (fulfillment === 'delivery' && !address) { msg.className = 'form-msg error'; msg.textContent = 'Enter a delivery address.'; msg.style.display = 'block'; return; }
 
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('category', category);
-    formData.append('price', price);
-    formData.append('description', description);
-    if (imageFile) formData.append('image', imageFile);
+    const payload = {
+      customerName: name,
+      phone,
+      email: email || undefined,
+      fulfillment,
+      address: fulfillment === 'delivery' ? address : undefined,
+      items: cartLines().map(l => ({ menuItemId: l.item.id, variantLabel: l.variantLabel || undefined, qty: l.qty })),
+    };
 
     const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Adding...';
+    btn.disabled = true; btn.textContent = 'Placing order...';
 
     try {
-      const res = await fetch(`${API_BASE}/admin/menu`, {
+      const res = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-        body: formData, // no Content-Type header — the browser sets the multipart boundary itself
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
-      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
       const data = await res.json();
-      if (data.error) {
-        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
+      if (!res.ok) {
+        msg.className = 'form-msg error'; msg.textContent = data.error || 'Could not place order.'; msg.style.display = 'block';
       } else {
-        e.target.reset();
-        loadMenuAdmin();
+        document.getElementById('confirmText').textContent =
+          `Thanks, ${name.split(' ')[0]}! Your order total is ${formatNgn(data.order.total)}. We'll have it ready for ${fulfillment}.`;
+        document.getElementById('confirmOrderId').textContent = data.order.id;
+        document.getElementById('trackOrderLink').href = `track.html?orderId=${encodeURIComponent(data.order.id)}`;
+        try {
+          localStorage.setItem('bk_lastOrderId', data.order.id);
+          localStorage.setItem('bk_lastOrderPhone', phone);
+        } catch (err) { /* ignore if storage is unavailable */ }
+        document.getElementById('checkoutView').classList.remove('show');
+        document.getElementById('confirmView').classList.add('show');
+        cart = {};
+        renderCart();
       }
     } catch (err) {
-      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
+      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server. Is the backend running?'; msg.style.display = 'block';
     } finally {
-      btn.disabled = false; btn.textContent = 'Add Item';
+      btn.disabled = false; btn.textContent = 'Place Order';
     }
   });
 
-  document.getElementById('addBananaForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('bbName').value.trim();
-    const description = document.getElementById('bbDescription').value.trim();
-    const sixInOne = document.getElementById('bbSixInOne').value.trim();
-    const big = document.getElementById('bbBig').value.trim();
-    const medium = document.getElementById('bbMedium').value.trim();
-    const small = document.getElementById('bbSmall').value.trim();
-    const imageFile = document.getElementById('bbImage').files[0];
-    const msg = document.getElementById('addBananaMsg');
-    msg.style.display = 'none';
+  loadMenu();
 
-    if (!name) {
-      msg.className = 'form-msg error'; msg.textContent = 'Enter a topping name.'; msg.style.display = 'block';
-      return;
-    }
-    if (!sixInOne && !big && !medium && !small) {
-      msg.className = 'form-msg error'; msg.textContent = 'Enter a price for at least one size.'; msg.style.display = 'block';
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', description);
-    if (sixInOne) formData.append('sixInOne', sixInOne);
-    if (big) formData.append('big', big);
-    if (medium) formData.append('medium', medium);
-    if (small) formData.append('small', small);
-    if (imageFile) formData.append('image', imageFile);
-
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Adding...';
-
+  document.getElementById('copyOrderIdBtn').addEventListener('click', async () => {
+    const id = document.getElementById('confirmOrderId').textContent;
+    const btn = document.getElementById('copyOrderIdBtn');
     try {
-      const res = await fetch(`${API_BASE}/admin/menu/banana-bread`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` },
-        body: formData,
-      });
-      if (res.status === 401) { window.location.href = 'admin-login.html'; return; }
-      const data = await res.json();
-      if (data.error) {
-        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
-      } else {
-        e.target.reset();
-        loadMenuAdmin();
-      }
+      await navigator.clipboard.writeText(id);
+      btn.textContent = 'Copied!';
     } catch (err) {
-      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Add Banana Bread Topping';
+      btn.textContent = 'Select & copy manually';
     }
+    setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
   });
-
-  document.getElementById('accountForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const currentPassword = document.getElementById('accCurrentPassword').value;
-    const newUsername = document.getElementById('accNewUsername').value.trim();
-    const newPassword = document.getElementById('accNewPassword').value;
-    const msg = document.getElementById('accountMsg');
-    msg.style.display = 'none';
-
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Saving...';
-
-    try {
-      const data = await apiSend('/admin/account', 'PUT', { currentPassword, newUsername, newPassword });
-      if (data.error) {
-        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
-      } else {
-        msg.className = 'form-msg success'; msg.textContent = 'Saved. Use your new details next time you log in.'; msg.style.display = 'block';
-        e.target.reset();
-      }
-    } catch (err) {
-      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
-    } finally {
-      btn.disabled = false; btn.textContent = 'Save Changes';
-    }
-  });
-
-  document.getElementById('logoutBtn').addEventListener('click', async () => {
-    await apiSend('/admin/logout', 'POST');
-    localStorage.removeItem('adminToken');
-    window.location.href = 'admin-login.html';
-  });
-
-  async function init() {
-    try {
-      await apiGet('/admin/me');
-      document.getElementById('loadingState').style.display = 'none';
-      document.getElementById('dashContent').style.display = 'block';
-      loadStats();
-    } catch (err) {
-      if (err.message === 'unauthorized') return; // apiGet already redirected to admin-login.html
-      document.getElementById('loadingState').innerHTML =
-        'Could not reach the server.<br><span style="font-size:12.5px;">Make sure the backend is running, and that this page is being served on the port set in FRONTEND_ORIGIN.</span>';
-    }
-  }
-
-  init();
 </script>
 
 </body>
