@@ -126,6 +126,7 @@
     <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Orders</button>
     <button class="tab-btn" data-tab="customers" onclick="switchTab('customers')">Customers</button>
     <button class="tab-btn" data-tab="menu" onclick="switchTab('menu')">Menu</button>
+    <button class="tab-btn" data-tab="account" onclick="switchTab('account')">Account</button>
   </div>
 
   <!-- STATS TAB -->
@@ -207,6 +208,29 @@
       </form>
     </div>
     <div id="menuAdminList"></div>
+  </div>
+
+  <!-- ACCOUNT TAB -->
+  <div class="tab-panel" id="tab-account">
+    <div class="add-item-form" style="max-width:420px;">
+      <h4>Change Username / Password</h4>
+      <form id="accountForm">
+        <div class="form-group">
+          <label class="form-label">Current Password</label>
+          <input type="password" id="accCurrentPassword" placeholder="Required to confirm changes" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Username (optional)</label>
+          <input type="text" id="accNewUsername" placeholder="Leave blank to keep current username"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">New Password (optional)</label>
+          <input type="password" id="accNewPassword" placeholder="Leave blank to keep current password"/>
+        </div>
+        <button type="submit" class="btn btn-primary" style="padding:10px 20px;">Save Changes</button>
+        <div class="form-msg" id="accountMsg"></div>
+      </form>
+    </div>
   </div>
 </div>
 
@@ -338,6 +362,7 @@
         <div class="order-top">
           <div>
             <div class="order-cust">${o.customerName}</div>
+            <div class="order-meta">Tracking ID: ${o.id}</div>
             <div class="order-meta">${o.phone} · ${o.fulfillment}${o.address ? ' · ' + o.address : ''}</div>
             <div class="order-meta">${new Date(o.createdAt).toLocaleString()}</div>
           </div>
@@ -348,7 +373,6 @@
         <div class="order-items">${o.items.map(i => `${i.qty}x ${i.name}`).join(', ')}</div>
         <div class="order-bottom">
           <span class="order-total">${formatNgn(o.total)}</span>
-          <button class="icon-btn" onclick="openEditOrder('${o.id}')">Edit</button>
         </div>
       </div>
     `).join('');
@@ -375,6 +399,7 @@
             ${c.orderCount > 1 ? `<span class="returning-badge">Returning</span>` : ''}
           </div>
           <div class="customer-phone">${c.phone}</div>
+          <div class="customer-phone" style="margin-top:2px;">Last tracking ID: ${c.lastOrderId}</div>
         </div>
         <div class="customer-stats">
           <div>
@@ -641,6 +666,32 @@
       msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
     } finally {
       btn.disabled = false; btn.textContent = 'Add Banana Bread Topping';
+    }
+  });
+
+  document.getElementById('accountForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const currentPassword = document.getElementById('accCurrentPassword').value;
+    const newUsername = document.getElementById('accNewUsername').value.trim();
+    const newPassword = document.getElementById('accNewPassword').value;
+    const msg = document.getElementById('accountMsg');
+    msg.style.display = 'none';
+
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.disabled = true; btn.textContent = 'Saving...';
+
+    try {
+      const data = await apiSend('/admin/account', 'PUT', { currentPassword, newUsername, newPassword });
+      if (data.error) {
+        msg.className = 'form-msg error'; msg.textContent = data.error; msg.style.display = 'block';
+      } else {
+        msg.className = 'form-msg success'; msg.textContent = 'Saved. Use your new details next time you log in.'; msg.style.display = 'block';
+        e.target.reset();
+      }
+    } catch (err) {
+      msg.className = 'form-msg error'; msg.textContent = 'Could not reach the server.'; msg.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Save Changes';
     }
   });
 
