@@ -57,7 +57,9 @@
     <li><a href="track.html">Track Order</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
-  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <div class="track-wrap">
@@ -104,10 +106,12 @@
 
   document.getElementById('navToggle').addEventListener('click', function () {
     document.getElementById('navLinks').classList.toggle('open');
+    document.getElementById('navToggle').classList.toggle('open');
   });
   document.querySelectorAll('.nav-links a').forEach(function (a) {
     a.addEventListener('click', function () {
       document.getElementById('navLinks').classList.remove('open');
+      document.getElementById('navToggle').classList.remove('open');
     });
   });
 
