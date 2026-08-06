@@ -366,7 +366,12 @@
     }
   });
 
-  loadMenu();
+  loadMenu().then(() => {
+    if (sessionStorage.getItem('scrollToMenu')) {
+      sessionStorage.removeItem('scrollToMenu');
+      document.getElementById('menu').scrollIntoView();
+    }
+  });
 
   document.getElementById('copyOrderIdBtn').addEventListener('click', async () => {
     const id = document.getElementById('confirmOrderId').textContent;
