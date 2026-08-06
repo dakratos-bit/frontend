@@ -16,7 +16,9 @@
     <li><a href="track.html">Track Order</a></li>
     <li><a href="contact.html">Contact</a></li>
   </ul>
-  <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">☰</button>
+  <button class="nav-toggle" id="navToggle" onclick="toggleNav()" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <section class="hero">
@@ -123,12 +125,26 @@
 
 <script>
   const API_BASE = 'https://backend-t99k.onrender.com/api';
-  const IMAGE_BASE = 'https://backend-t99k.onrender.com';
+  const IMAGE_BASE = 'https://backend-t99k.onrender.com/';
   let menuItems = [];
   let cart = {}; // { menuItemId: qty }
   let fulfillment = 'pickup';
 
+  function toggleNav() {
+    document.getElementById('navLinks').classList.toggle('open');
+    document.getElementById('navToggle').classList.toggle('open');
+  }
+
   function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
+
+  // Cloudinary returns a full https URL, but old items (uploaded before the
+  // Cloudinary switch) may still have an old relative /uploads/... path
+  // saved — those are broken now regardless, but this avoids mangling the
+  // new full URLs by double-prepending IMAGE_BASE onto them.
+  function resolveImageUrl(url) {
+    if (!url) return null;
+    return url.startsWith('http') ? url : `${IMAGE_BASE}${url}`;
+  }
 
   async function loadMenu() {
     try {
@@ -150,7 +166,7 @@
         ${menuItems.filter(i => i.category === cat).map(item => `
           <div class="menu-card">
             ${item.imageUrl
-              ? `<img src="${IMAGE_BASE}${item.imageUrl}" class="menu-card-img" alt="${item.name}"/>`
+              ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${item.name}"/>`
               : `<div class="menu-card-img menu-card-img-placeholder">🍽️</div>`}
             <div class="menu-card-top">
               <h4>${item.name}</h4>
@@ -285,16 +301,6 @@
     document.getElementById('deliveryBtn').classList.toggle('on', mode === 'delivery');
     document.getElementById('addressGroup').style.display = mode === 'delivery' ? 'block' : 'none';
   }
-
-  document.getElementById('navToggle').addEventListener('click', function () {
-    document.getElementById('navLinks').classList.toggle('open');
-  });
-
-  document.querySelectorAll('.nav-links a').forEach(function (a) {
-    a.addEventListener('click', function () {
-      document.getElementById('navLinks').classList.remove('open');
-    });
-  });
 
   document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
     e.preventDefault();
