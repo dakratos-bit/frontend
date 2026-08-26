@@ -8,6 +8,83 @@
   <link rel="canonical" href="https://thebakerng.netlify.app/contact"/>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .contact-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+    }
+    .contact-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .contact-btn:hover { transform: translateY(-1px); }
+    .contact-btn .icon-circle {
+      width: 34px;
+      height: 34px;
+      min-width: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .contact-btn.call {
+      background: var(--primary, #b5651d);
+      color: #fff;
+    }
+    .contact-btn.call .icon-circle { background: rgba(255,255,255,0.22); }
+
+    .contact-btn.whatsapp {
+      background: #25D366;
+      color: #fff;
+    }
+    .contact-btn.whatsapp .icon-circle { background: rgba(255,255,255,0.22); }
+
+    .social-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    .social-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--cream-dark, #f6efe6);
+      color: var(--text);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 600;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .social-btn:hover { transform: translateY(-1px); background: var(--border); }
+    .social-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .contact-divider {
+      text-align: center;
+      font-size: 11.5px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin: 6px 0 -2px;
+    }
+  </style>
 </head>
 <body>
 <nav>
@@ -22,26 +99,57 @@
     <span></span><span></span><span></span>
   </button>
 </nav>
+
 <section class="section" style="padding:60px 6% 40px;max-width:600px;margin:0 auto;">
   <h2 style="text-align:center;font-size:28px;margin-bottom:6px;">Get in Touch</h2>
   <p style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:28px;">Call, WhatsApp, or find us on social — we'd love to hear from you.</p>
-  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:14px;">
-    <a href="tel:07057155056" class="btn btn-primary" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;">
-      📞 Call 0705 715 5056
+
+  <div class="contact-card">
+
+    <a href="tel:07057155056" class="contact-btn call">
+      <span class="icon-circle">
+        <!-- Phone icon -->
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.8 21 3 13.2 3 3.9c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.2.2 2.4.6 3.6.1.4 0 .8-.2 1l-2.3 2.3z" fill="#fff"/>
+        </svg>
+      </span>
+      Call 0705 715 5056
     </a>
-    <a href="https://wa.me/2347057155056" target="_blank" rel="noopener" class="btn btn-ghost" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;">
-      💬 WhatsApp Us
+
+    <a href="https://wa.me/2347057155056" target="_blank" rel="noopener" class="contact-btn whatsapp">
+      <span class="icon-circle">
+        <!-- WhatsApp icon -->
+        <svg width="19" height="19" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M23.6 18.8c-.35-.18-2.06-1.02-2.38-1.13-.32-.12-.55-.18-.79.18-.23.35-.9 1.13-1.1 1.36-.2.23-.4.26-.75.09-.35-.18-1.48-.55-2.82-1.75-1.04-.93-1.75-2.08-1.95-2.43-.2-.35-.02-.54.15-.71.16-.16.35-.4.53-.61.18-.2.23-.35.35-.58.12-.23.06-.44-.03-.61-.09-.18-.79-1.92-1.09-2.62-.29-.7-.58-.6-.79-.61-.2-.01-.44-.01-.67-.01-.23 0-.61.09-.93.44-.32.35-1.22 1.19-1.22 2.9 0 1.71 1.25 3.36 1.42 3.59.18.23 2.46 3.76 5.96 5.27.83.36 1.48.57 1.99.73.84.27 1.6.23 2.2.14.67-.1 2.06-.84 2.35-1.65.29-.81.29-1.5.2-1.65-.09-.14-.32-.23-.67-.4zM16.02 3C9.4 3 4 8.37 4 15c0 2.35.66 4.55 1.8 6.42L4 29l7.77-1.75A11.9 11.9 0 0 0 16.02 27C22.63 27 28 21.63 28 15S22.63 3 16.02 3zm0 21.9c-1.98 0-3.83-.55-5.4-1.5l-.39-.23-4.02.91.85-3.93-.25-.4A9.85 9.85 0 0 1 6.1 15c0-5.46 4.46-9.9 9.92-9.9S25.9 9.54 25.9 15s-4.42 9.9-9.88 9.9z" fill="#fff"/>
+        </svg>
+      </span>
+      WhatsApp Us
     </a>
-    <div style="display:flex;gap:10px;">
-      <a href="https://instagram.com/thebaker.ng" target="_blank" rel="noopener" class="btn btn-ghost" style="flex:1;text-align:center;padding:11px;font-size:13px;">
-        Instagram · @thebaker.ng
+
+    <div class="contact-divider">Follow us</div>
+
+    <div class="social-row">
+      <a href="https://instagram.com/thebaker.ng" target="_blank" rel="noopener" class="social-btn">
+        <!-- Instagram icon -->
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="3" y="3" width="18" height="18" rx="5" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor"/>
+        </svg>
+        @thebaker.ng
       </a>
-      <a href="https://tiktok.com/@thebaker.ng24" target="_blank" rel="noopener" class="btn btn-ghost" style="flex:1;text-align:center;padding:11px;font-size:13px;">
-        TikTok · @thebaker.ng24
+      <a href="https://tiktok.com/@thebaker.ng24" target="_blank" rel="noopener" class="social-btn">
+        <!-- TikTok icon -->
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14.5 3c.3 1.9 1.6 3.4 3.5 3.7v2.6c-1.3 0-2.5-.4-3.5-1.1v6.1c0 3-2.4 5.4-5.4 5.4S3.7 17.3 3.7 14.3c0-2.9 2.2-5.2 5-5.4v2.7c-1.3.2-2.3 1.3-2.3 2.7 0 1.5 1.3 2.8 2.8 2.8s2.8-1.3 2.8-2.8V3h2.5z" fill="currentColor"/>
+        </svg>
+        @thebaker.ng24
       </a>
     </div>
+
   </div>
 </section>
+
 <footer>
   &copy; 2026 The Baker NG. Made fresh, ordered easy.
 </footer>
