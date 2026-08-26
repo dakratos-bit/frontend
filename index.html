@@ -156,6 +156,24 @@
   let cart = {}; // { menuItemId: qty }
   let fulfillment = 'pickup';
 
+  function payWithPaystack(email, amountInKobo, onSuccess) {
+  const handler = PaystackPop.setup({
+    key: 'pk_test_xxxxxxxxxxxxxxxxxxxx', // your public key
+    email: email || 'customer@example.com',
+    amount: amountInKobo,
+    callback: function(response) {
+      onSuccess(response.reference);
+    },
+    onClose: function() {
+      const msg = document.getElementById('checkoutMsg');
+      msg.className = 'form-msg error';
+      msg.textContent = 'Payment was cancelled.';
+      msg.style.display = 'block';
+    }
+  });
+  handler.openIframe();
+}
+
   function toggleNav() {
     document.getElementById('navLinks').classList.toggle('open');
     document.getElementById('navToggle').classList.toggle('open');
