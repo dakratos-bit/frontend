@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>The Baker NG – Order Fresh Bakery Items Online | Pickup & Delivery</title>
-<meta name="description" content="Order fresh cakes, pastries, and banana bread online from The Baker NG. Made fresh daily, available for pickup or delivery. Order in minutes."/>
+<title>The Baker NG – Cake & Banana Bread Vendor in Benin City | Pickup & Delivery</title>
+<meta name="description" content="The Baker NG is a trusted cake and banana bread vendor in Benin City. Order fresh cakes, pastries, and banana bread online, made fresh daily, with pickup or delivery across Benin City."/>
 <link rel="canonical" href="https://thebakerng.netlify.app/"/>
 
 <!-- Open Graph (controls how the link looks when shared on WhatsApp, Facebook, etc.) -->
 <meta property="og:type" content="website"/>
-<meta property="og:title" content="The Baker NG – Order Fresh Bakery Items Online"/>
-<meta property="og:description" content="Order fresh cakes, pastries, and banana bread online. Made fresh daily, available for pickup or delivery."/>
+<meta property="og:title" content="The Baker NG – Cake & Banana Bread Vendor in Benin City"/>
+<meta property="og:description" content="Order fresh cakes and banana bread online from Benin City's favorite bakery. Made fresh daily, available for pickup or delivery."/>
 <meta property="og:url" content="https://thebakerng.netlify.app/"/>
 
-<!-- Structured data — tells Google this is a local bakery business -->
+<!-- Structured data — tells Google this is a local bakery business in Benin City -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -23,6 +23,13 @@
   "telephone": "+2347057155056",
   "servesCuisine": "Bakery",
   "priceRange": "₦₦",
+  "address": {
+    "@type": "PostalAddress",
+    "addressLocality": "Benin City",
+    "addressRegion": "Edo State",
+    "addressCountry": "NG"
+  },
+  "areaServed": "Benin City",
   "sameAs": [
     "https://instagram.com/thebaker.ng",
     "https://tiktok.com/@thebaker.ng24"
@@ -41,7 +48,6 @@
     <li><a href="#" onclick="scrollToMenu(event)">Menu</a></li>
     <li><a href="track.html">Track Order</a></li>
     <li><a href="contact.html">Contact</a></li>
-    <li><a href="about.html">About Us</a></li>
   </ul>
   <button class="nav-toggle" id="navToggle" onclick="toggleNav()" aria-label="Toggle menu">
     <span></span><span></span><span></span>
@@ -51,7 +57,7 @@
 <section class="hero">
   <div class="hero-eyebrow">Fresh · Local · Made to Order</div>
   <h1>Good food,<br><em>made with heart</em></h1>
-  <p>Order online for pickup or delivery. Everything on our menu is made fresh the same day.</p>
+  <p>The Baker NG is a cake and banana bread vendor based in Benin City. Order online for pickup or delivery — everything on our menu is made fresh the same day.</p>
   <a href="#" onclick="scrollToMenu(event)" class="btn btn-primary btn-lg">View Menu</a>
 </section>
 
@@ -164,7 +170,7 @@ const PAYSTACK_PUBLIC_KEY = 'pk_test_REPLACE_WITH_YOUR_REAL_PUBLIC_KEY';
 
 function payWithPaystack(email, amountInKobo, onSuccess) {
   const handler = PaystackPop.setup({
-    key: 'pk_test_ce0fa7c168bd9de807d2d364b1a4e1795d60af89',
+    key: PAYSTACK_PUBLIC_KEY,
     email: email || 'customer@example.com',
     amount: amountInKobo,
     callback: function(response) {
@@ -225,7 +231,7 @@ function renderMenu() {
       ${menuItems.filter(i => i.category === cat).map(item => `
         <div class="menu-card">
           ${item.imageUrl
-            ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${item.name}"/>`
+            ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${item.name} - The Baker NG, cake and banana bread vendor in Benin City"/>`
             : `<div class="menu-card-img menu-card-img-placeholder">🍽️</div>`}
           <div class="menu-card-top">
             <h4>${item.name}</h4>
