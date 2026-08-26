@@ -1,37 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>The Baker NG – Order Fresh Bakery Items Online | Pickup & Delivery</title>
-  <meta name="description" content="Order fresh cakes, pastries, and banana bread online from The Baker NG. Made fresh daily, available for pickup or delivery. Order in minutes."/>
-  <link rel="canonical" href="https://thebakerng.netlify.app/"/>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Baker NG – Order Fresh Bakery Items Online | Pickup & Delivery</title>
+<meta name="description" content="Order fresh cakes, pastries, and banana bread online from The Baker NG. Made fresh daily, available for pickup or delivery. Order in minutes."/>
+<link rel="canonical" href="https://thebakerng.netlify.app/"/>
 
-  <!-- Open Graph (controls how the link looks when shared on WhatsApp, Facebook, etc.) -->
-  <meta property="og:type" content="website"/>
-  <meta property="og:title" content="The Baker NG – Order Fresh Bakery Items Online"/>
-  <meta property="og:description" content="Order fresh cakes, pastries, and banana bread online. Made fresh daily, available for pickup or delivery."/>
-  <meta property="og:url" content="https://thebakerng.netlify.app/"/>
+<!-- Open Graph (controls how the link looks when shared on WhatsApp, Facebook, etc.) -->
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="The Baker NG – Order Fresh Bakery Items Online"/>
+<meta property="og:description" content="Order fresh cakes, pastries, and banana bread online. Made fresh daily, available for pickup or delivery."/>
+<meta property="og:url" content="https://thebakerng.netlify.app/"/>
 
-  <!-- Structured data — tells Google this is a local bakery business -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "Bakery",
-    "name": "The Baker NG",
-    "url": "https://thebakerng.netlify.app/",
-    "telephone": "+2347057155056",
-    "servesCuisine": "Bakery",
-    "priceRange": "₦₦",
-    "sameAs": [
-      "https://instagram.com/thebaker.ng",
-      "https://tiktok.com/@thebaker.ng24"
-    ]
-  }
-  </script>
+<!-- Structured data — tells Google this is a local bakery business -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Bakery",
+  "name": "The Baker NG",
+  "url": "https://thebakerng.netlify.app/",
+  "telephone": "+2347057155056",
+  "servesCuisine": "Bakery",
+  "priceRange": "₦₦",
+  "sameAs": [
+    "https://instagram.com/thebaker.ng",
+    "https://tiktok.com/@thebaker.ng24"
+  ]
+}
+</script>
 
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="styles.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
 
@@ -121,7 +121,6 @@
       </div>
 
       <div class="cart-total-row"><span>Total</span><span id="checkoutTotal">₦0</span></div>
-
       <button type="submit" class="btn btn-primary" style="width:100%;padding:13px;">Place Order</button>
       <div class="form-msg" id="checkoutMsg"></div>
     </form>
@@ -150,15 +149,21 @@
 </footer>
 
 <script>
-  const API_BASE = 'https://backend-t99k.onrender.com/api';
-  const IMAGE_BASE = 'https://backend-t99k.onrender.com/';
-  let menuItems = [];
-  let cart = {}; // { menuItemId: qty }
-  let fulfillment = 'pickup';
+const API_BASE = 'https://backend-t99k.onrender.com/api';
+const IMAGE_BASE = 'https://backend-t99k.onrender.com/';
 
-  function payWithPaystack(email, amountInKobo, onSuccess) {
+let menuItems = [];
+let cart = {}; // { menuItemId: qty }
+let fulfillment = 'pickup';
+
+// IMPORTANT: replace the placeholder below with your real Paystack PUBLIC key
+// (Paystack Dashboard → Settings → API Keys & Webhooks → Public Key).
+// Never put your SECRET key here — that only ever goes on the backend.
+const PAYSTACK_PUBLIC_KEY = 'pk_test_REPLACE_WITH_YOUR_REAL_PUBLIC_KEY';
+
+function payWithPaystack(email, amountInKobo, onSuccess) {
   const handler = PaystackPop.setup({
-    key: 'pk_test_xxxxxxxxxxxxxxxxxxxx', // your public key
+    key: pk_test_ce0fa7c168bd9de807d2d364b1a4e1795d60af89,
     email: email || 'customer@example.com',
     amount: amountInKobo,
     callback: function(response) {
@@ -174,219 +179,235 @@
   handler.openIframe();
 }
 
-  function toggleNav() {
-    document.getElementById('navLinks').classList.toggle('open');
-    document.getElementById('navToggle').classList.toggle('open');
+function toggleNav() {
+  document.getElementById('navLinks').classList.toggle('open');
+  document.getElementById('navToggle').classList.toggle('open');
+}
+
+function scrollToMenu(e) {
+  e.preventDefault();
+  document.getElementById('menu').scrollIntoView({ behavior: 'smooth' });
+  // Close the mobile nav dropdown too, if it was open
+  document.getElementById('navLinks').classList.remove('open');
+  document.getElementById('navToggle').classList.remove('open');
+}
+
+function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
+
+// Cloudinary returns a full https URL, but old items (uploaded before the
+// Cloudinary switch) may still have an old relative /uploads/... path
+// saved — those are broken now regardless, but this avoids mangling the
+// new full URLs by double-prepending IMAGE_BASE onto them.
+function resolveImageUrl(url) {
+  if (!url) return null;
+  return url.startsWith('http') ? url : `${IMAGE_BASE}${url}`;
+}
+
+async function loadMenu() {
+  try {
+    const res = await fetch(`${API_BASE}/menu`);
+    const data = await res.json();
+    menuItems = data.items;
+    renderMenu();
+  } catch (err) {
+    document.getElementById('menuContent').innerHTML = '<p style="text-align:center;color:var(--muted);">Could not load the menu. Is the backend running?</p>';
   }
+}
 
-  function scrollToMenu(e) {
-    e.preventDefault();
-    document.getElementById('menu').scrollIntoView({ behavior: 'smooth' });
-    // Close the mobile nav dropdown too, if it was open
-    document.getElementById('navLinks').classList.remove('open');
-    document.getElementById('navToggle').classList.remove('open');
-  }
+function renderMenu() {
+  const categories = [...new Set(menuItems.map(i => i.category))];
+  const container = document.getElementById('menuContent');
 
-  function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
-
-  // Cloudinary returns a full https URL, but old items (uploaded before the
-  // Cloudinary switch) may still have an old relative /uploads/... path
-  // saved — those are broken now regardless, but this avoids mangling the
-  // new full URLs by double-prepending IMAGE_BASE onto them.
-  function resolveImageUrl(url) {
-    if (!url) return null;
-    return url.startsWith('http') ? url : `${IMAGE_BASE}${url}`;
-  }
-
-  async function loadMenu() {
-    try {
-      const res = await fetch(`${API_BASE}/menu`);
-      const data = await res.json();
-      menuItems = data.items;
-      renderMenu();
-    } catch (err) {
-      document.getElementById('menuContent').innerHTML = '<p style="text-align:center;color:var(--muted);">Could not load the menu. Is the backend running?</p>';
-    }
-  }
-
-  function renderMenu() {
-    const categories = [...new Set(menuItems.map(i => i.category))];
-    const container = document.getElementById('menuContent');
-    container.innerHTML = categories.map(cat => `
-      <h2 class="category-title">${cat}</h2>
-      <div class="menu-grid">
-        ${menuItems.filter(i => i.category === cat).map(item => `
-          <div class="menu-card">
-            ${item.imageUrl
-              ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${item.name}"/>`
-              : `<div class="menu-card-img menu-card-img-placeholder">🍽️</div>`}
-            <div class="menu-card-top">
-              <h4>${item.name}</h4>
-              ${item.variants ? '' : `<span class="price">${formatNgn(item.price)}</span>`}
-            </div>
-            <p>${item.description || ''}</p>
-            ${item.variants ? renderVariantPicker(item) : `
-              <div class="add-row">
-                ${item.available
-                  ? `<button class="btn btn-ghost" style="font-size:13px;padding:8px 16px;" onclick="addToCart('${item.id}')">Add to cart</button>`
-                  : `<span class="unavailable-tag">Currently unavailable</span>`}
-              </div>
-            `}
+  container.innerHTML = categories.map(cat => `
+    <h2 class="category-title">${cat}</h2>
+    <div class="menu-grid">
+      ${menuItems.filter(i => i.category === cat).map(item => `
+        <div class="menu-card">
+          ${item.imageUrl
+            ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${item.name}"/>`
+            : `<div class="menu-card-img menu-card-img-placeholder">🍽️</div>`}
+          <div class="menu-card-top">
+            <h4>${item.name}</h4>
+            ${item.variants ? '' : `<span class="price">${formatNgn(item.price)}</span>`}
           </div>
-        `).join('')}
+          <p>${item.description || ''}</p>
+          ${item.variants ? renderVariantPicker(item) : `
+            <div class="add-row">
+              ${item.available
+                ? `<button class="btn btn-ghost" style="font-size:13px;padding:8px 16px;" onclick="addToCart('${item.id}')">Add to cart</button>`
+                : `<span class="unavailable-tag">Currently unavailable</span>`}
+            </div>
+          `}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function renderVariantPicker(item) {
+  if (!item.available) {
+    return `<div class="add-row"><span class="unavailable-tag">Currently unavailable</span></div>`;
+  }
+  return `
+    <div class="variant-row">
+      ${item.variants.map(v => `
+        <button class="variant-btn" onclick="addVariantToCart('${item.id}', '${v.label.replace(/'/g, "\\'")}')">
+          <span>${v.label}</span>
+          <span class="variant-price">${formatNgn(v.price)}</span>
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+function addVariantToCart(id, variantLabel) {
+  const key = `${id}::${variantLabel}`;
+  cart[key] = (cart[key] || 0) + 1;
+  renderCart();
+  flashCartButton();
+}
+
+function addToCart(id) {
+  cart[id] = (cart[id] || 0) + 1;
+  renderCart();
+  flashCartButton();
+}
+
+function flashCartButton() {
+  const btn = document.getElementById('cartToggle');
+  btn.style.transform = 'scale(1.08)';
+  setTimeout(() => { btn.style.transform = 'scale(1)'; }, 180);
+}
+
+function changeQty(id, delta) {
+  cart[id] = (cart[id] || 0) + delta;
+  if (cart[id] <= 0) delete cart[id];
+  renderCart();
+}
+
+function cartLines() {
+  return Object.entries(cart).map(([key, qty]) => {
+    const [id, variantLabel] = key.split('::');
+    const item = menuItems.find(i => i.id === id);
+    if (!item) return null;
+
+    if (variantLabel) {
+      const variant = (item.variants || []).find(v => v.label === variantLabel);
+      if (!variant) return null;
+      return { key, item, qty, variantLabel, displayName: `${item.name} (${variant.label})`, unitPrice: variant.price };
+    }
+    return { key, item, qty, variantLabel: null, displayName: item.name, unitPrice: item.price };
+  }).filter(Boolean);
+}
+
+function cartTotal() {
+  return cartLines().reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
+}
+
+function renderCart() {
+  const lines = cartLines();
+  const itemsEl = document.getElementById('cartItems');
+  const total = cartTotal();
+  const count = lines.reduce((s, l) => s + l.qty, 0);
+
+  document.getElementById('cartCount').textContent = count;
+  document.getElementById('cartTotalMini').textContent = formatNgn(total);
+  document.getElementById('cartTotal').textContent = formatNgn(total);
+  document.getElementById('checkoutTotal').textContent = formatNgn(total);
+  document.getElementById('checkoutBtn').disabled = lines.length === 0;
+
+  itemsEl.innerHTML = lines.length === 0
+    ? '<div class="cart-empty">Your cart is empty.<br>Add something tasty from the menu.</div>'
+    : lines.map(l => `
+      <div class="cart-line">
+        <div>
+          <div class="cart-line-name">${l.displayName}</div>
+          <div class="cart-line-price">${formatNgn(l.unitPrice)} each</div>
+        </div>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="changeQty('${l.key}',-1)">&minus;</button>
+          <span>${l.qty}</span>
+          <button class="qty-btn" onclick="changeQty('${l.key}',1)">+</button>
+        </div>
       </div>
     `).join('');
-  }
+}
 
-  function renderVariantPicker(item) {
-    if (!item.available) {
-      return `<div class="add-row"><span class="unavailable-tag">Currently unavailable</span></div>`;
-    }
-    return `
-      <div class="variant-row">
-        ${item.variants.map(v => `
-          <button class="variant-btn" onclick="addVariantToCart('${item.id}', '${v.label.replace(/'/g, "\\'")}')">
-            <span>${v.label}</span>
-            <span class="variant-price">${formatNgn(v.price)}</span>
-          </button>
-        `).join('')}
-      </div>
-    `;
-  }
+function openCart() {
+  document.getElementById('cartDrawer').classList.add('open');
+  document.getElementById('overlay').classList.add('show');
+  showCart();
+}
 
-  function addVariantToCart(id, variantLabel) {
-    const key = `${id}::${variantLabel}`;
-    cart[key] = (cart[key] || 0) + 1;
-    renderCart();
-    flashCartButton();
-  }
+function closeAllPanels() {
+  document.getElementById('cartDrawer').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+}
 
-  function addToCart(id) {
-    cart[id] = (cart[id] || 0) + 1;
-    renderCart();
-    flashCartButton();
-  }
+function showCart() {
+  document.getElementById('cartView').style.display = 'flex';
+  document.getElementById('cartView').style.flex = '1';
+  document.getElementById('cartView').style.flexDirection = 'column';
+  document.getElementById('checkoutView').classList.remove('show');
+  document.getElementById('confirmView').classList.remove('show');
+}
 
-  function flashCartButton() {
-    const btn = document.getElementById('cartToggle');
-    btn.style.transform = 'scale(1.08)';
-    setTimeout(() => { btn.style.transform = 'scale(1)'; }, 180);
-  }
-  function changeQty(id, delta) {
-    cart[id] = (cart[id] || 0) + delta;
-    if (cart[id] <= 0) delete cart[id];
-    renderCart();
-  }
+function showCheckout() {
+  if (cartLines().length === 0) return;
+  document.getElementById('cartView').style.display = 'none';
+  document.getElementById('checkoutView').classList.add('show');
+  document.getElementById('confirmView').classList.remove('show');
+}
 
-  function cartLines() {
-    return Object.entries(cart).map(([key, qty]) => {
-      const [id, variantLabel] = key.split('::');
-      const item = menuItems.find(i => i.id === id);
-      if (!item) return null;
-      if (variantLabel) {
-        const variant = (item.variants || []).find(v => v.label === variantLabel);
-        if (!variant) return null;
-        return { key, item, qty, variantLabel, displayName: `${item.name} (${variant.label})`, unitPrice: variant.price };
-      }
-      return { key, item, qty, variantLabel: null, displayName: item.name, unitPrice: item.price };
-    }).filter(Boolean);
-  }
+function setFulfillment(mode) {
+  fulfillment = mode;
+  document.getElementById('pickupBtn').classList.toggle('on', mode === 'pickup');
+  document.getElementById('deliveryBtn').classList.toggle('on', mode === 'delivery');
+  document.getElementById('addressGroup').style.display = mode === 'delivery' ? 'block' : 'none';
+}
 
-  function cartTotal() {
-    return cartLines().reduce((sum, l) => sum + l.unitPrice * l.qty, 0);
-  }
+document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-  function renderCart() {
-    const lines = cartLines();
-    const itemsEl = document.getElementById('cartItems');
-    const total = cartTotal();
-    const count = lines.reduce((s, l) => s + l.qty, 0);
+  const name = document.getElementById('custName').value.trim();
+  const phone = document.getElementById('custPhone').value.trim();
+  const email = document.getElementById('custEmail').value.trim();
+  const address = document.getElementById('custAddress').value.trim();
+  const msg = document.getElementById('checkoutMsg');
+  msg.style.display = 'none';
 
-    document.getElementById('cartCount').textContent = count;
-    document.getElementById('cartTotalMini').textContent = formatNgn(total);
-    document.getElementById('cartTotal').textContent = formatNgn(total);
-    document.getElementById('checkoutTotal').textContent = formatNgn(total);
-    document.getElementById('checkoutBtn').disabled = lines.length === 0;
+  if (!name) { msg.className = 'form-msg error'; msg.textContent = 'Enter your name.'; msg.style.display = 'block'; return; }
+  if (!/^\d{7,15}$/.test(phone.replace(/\D/g, ''))) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid phone number.'; msg.style.display = 'block'; return; }
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid email or leave it blank.'; msg.style.display = 'block'; return; }
+  if (fulfillment === 'delivery' && !address) { msg.className = 'form-msg error'; msg.textContent = 'Enter a delivery address.'; msg.style.display = 'block'; return; }
 
-    itemsEl.innerHTML = lines.length === 0
-      ? '<div class="cart-empty">Your cart is empty.<br>Add something tasty from the menu.</div>'
-      : lines.map(l => `
-        <div class="cart-line">
-          <div>
-            <div class="cart-line-name">${l.displayName}</div>
-            <div class="cart-line-price">${formatNgn(l.unitPrice)} each</div>
-          </div>
-          <div class="qty-controls">
-            <button class="qty-btn" onclick="changeQty('${l.key}',-1)">&minus;</button>
-            <span>${l.qty}</span>
-            <button class="qty-btn" onclick="changeQty('${l.key}',1)">+</button>
-          </div>
-        </div>
-      `).join('');
-  }
+  const payload = {
+    customerName: name,
+    phone,
+    email: email || undefined,
+    fulfillment,
+    address: fulfillment === 'delivery' ? address : undefined,
+    items: cartLines().map(l => ({ menuItemId: l.item.id, variantLabel: l.variantLabel || undefined, qty: l.qty })),
+  };
 
-  function openCart() {
-    document.getElementById('cartDrawer').classList.add('open');
-    document.getElementById('overlay').classList.add('show');
-    showCart();
-  }
-  function closeAllPanels() {
-    document.getElementById('cartDrawer').classList.remove('open');
-    document.getElementById('overlay').classList.remove('show');
-  }
-  function showCart() {
-    document.getElementById('cartView').style.display = 'flex';
-    document.getElementById('cartView').style.flex = '1';
-    document.getElementById('cartView').style.flexDirection = 'column';
-    document.getElementById('checkoutView').classList.remove('show');
-    document.getElementById('confirmView').classList.remove('show');
-  }
-  function showCheckout() {
-    if (cartLines().length === 0) return;
-    document.getElementById('cartView').style.display = 'none';
-    document.getElementById('checkoutView').classList.add('show');
-    document.getElementById('confirmView').classList.remove('show');
-  }
-  function setFulfillment(mode) {
-    fulfillment = mode;
-    document.getElementById('pickupBtn').classList.toggle('on', mode === 'pickup');
-    document.getElementById('deliveryBtn').classList.toggle('on', mode === 'delivery');
-    document.getElementById('addressGroup').style.display = mode === 'delivery' ? 'block' : 'none';
-  }
+  const total = cartTotal();
+  const paymentEmail = email || 'guest@thebakerng.com'; // Paystack requires an email
 
-  document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const name = document.getElementById('custName').value.trim();
-    const phone = document.getElementById('custPhone').value.trim();
-    const email = document.getElementById('custEmail').value.trim();
-    const address = document.getElementById('custAddress').value.trim();
-    const msg = document.getElementById('checkoutMsg');
-    msg.style.display = 'none';
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true; btn.textContent = 'Processing payment...';
 
-    if (!name) { msg.className = 'form-msg error'; msg.textContent = 'Enter your name.'; msg.style.display = 'block'; return; }
-    if (!/^\d{7,15}$/.test(phone.replace(/\D/g, ''))) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid phone number.'; msg.style.display = 'block'; return; }
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { msg.className = 'form-msg error'; msg.textContent = 'Enter a valid email or leave it blank.'; msg.style.display = 'block'; return; }
-    if (fulfillment === 'delivery' && !address) { msg.className = 'form-msg error'; msg.textContent = 'Enter a delivery address.'; msg.style.display = 'block'; return; }
-
-    const payload = {
-      customerName: name,
-      phone,
-      email: email || undefined,
-      fulfillment,
-      address: fulfillment === 'delivery' ? address : undefined,
-      items: cartLines().map(l => ({ menuItemId: l.item.id, variantLabel: l.variantLabel || undefined, qty: l.qty })),
-    };
-
-    const btn = e.target.querySelector('button[type="submit"]');
-    btn.disabled = true; btn.textContent = 'Placing order...';
-
+  payWithPaystack(paymentEmail, Math.round(total * 100), async (reference) => {
+    // Payment succeeded on Paystack's side — now the backend verifies the
+    // reference server-side (never trust the frontend alone) and places the order.
+    btn.textContent = 'Placing order...';
     try {
       const res = await fetch(`${API_BASE}/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({ ...payload, paymentReference: reference }),
       });
       const data = await res.json();
+
       if (!res.ok) {
         msg.className = 'form-msg error'; msg.textContent = data.error || 'Could not place order.'; msg.style.display = 'block';
       } else {
@@ -409,25 +430,26 @@
       btn.disabled = false; btn.textContent = 'Place Order';
     }
   });
+});
 
-  loadMenu().then(() => {
-    if (sessionStorage.getItem('scrollToMenu')) {
-      sessionStorage.removeItem('scrollToMenu');
-      document.getElementById('menu').scrollIntoView();
-    }
-  });
+loadMenu().then(() => {
+  if (sessionStorage.getItem('scrollToMenu')) {
+    sessionStorage.removeItem('scrollToMenu');
+    document.getElementById('menu').scrollIntoView();
+  }
+});
 
-  document.getElementById('copyOrderIdBtn').addEventListener('click', async () => {
-    const id = document.getElementById('confirmOrderId').textContent;
-    const btn = document.getElementById('copyOrderIdBtn');
-    try {
-      await navigator.clipboard.writeText(id);
-      btn.textContent = 'Copied!';
-    } catch (err) {
-      btn.textContent = 'Select & copy manually';
-    }
-    setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
-  });
+document.getElementById('copyOrderIdBtn').addEventListener('click', async () => {
+  const id = document.getElementById('confirmOrderId').textContent;
+  const btn = document.getElementById('copyOrderIdBtn');
+  try {
+    await navigator.clipboard.writeText(id);
+    btn.textContent = 'Copied!';
+  } catch (err) {
+    btn.textContent = 'Select & copy manually';
+  }
+  setTimeout(() => { btn.textContent = 'Copy'; }, 1800);
+});
 </script>
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
