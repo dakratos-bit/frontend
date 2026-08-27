@@ -47,9 +47,7 @@
   <ul class="nav-links" id="navLinks">
     <li><a href="#" onclick="scrollToMenu(event)">Menu</a></li>
     <li><a href="track.html">Track Order</a></li>
-    <li><a href="contact.html">Contact Us</a></li>
-    <li><a href="about.html">About Us</a></li>
-    
+    <li><a href="contact.html">Contact</a></li>
   </ul>
   <button class="nav-toggle" id="navToggle" onclick="toggleNav()" aria-label="Toggle menu">
     <span></span><span></span><span></span>
@@ -203,6 +201,20 @@ function scrollToMenu(e) {
 
 function formatNgn(v) { return '₦' + Math.round(v).toLocaleString('en-NG'); }
 
+// Escapes text before it's inserted into the page via innerHTML/template
+// strings, so a menu item name/description/etc containing HTML or script
+// tags (whether typed by mistake or by someone malicious in the admin
+// panel) is displayed as plain text instead of being executed as markup.
+function escapeHtml(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // Cloudinary returns a full https URL, but old items (uploaded before the
 // Cloudinary switch) may still have an old relative /uploads/... path
 // saved — those are broken now regardless, but this avoids mangling the
@@ -228,18 +240,18 @@ function renderMenu() {
   const container = document.getElementById('menuContent');
 
   container.innerHTML = categories.map(cat => `
-    <h2 class="category-title">${cat}</h2>
+    <h2 class="category-title">${escapeHtml(cat)}</h2>
     <div class="menu-grid">
       ${menuItems.filter(i => i.category === cat).map(item => `
         <div class="menu-card">
           ${item.imageUrl
-            ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${item.name} - The Baker NG, cake and banana bread vendor in Benin City"/>`
+            ? `<img src="${resolveImageUrl(item.imageUrl)}" class="menu-card-img" alt="${escapeHtml(item.name)} - The Baker NG, cake and banana bread vendor in Benin City"/>`
             : `<div class="menu-card-img menu-card-img-placeholder">🍽️</div>`}
           <div class="menu-card-top">
-            <h4>${item.name}</h4>
+            <h4>${escapeHtml(item.name)}</h4>
             ${item.variants ? '' : `<span class="price">${formatNgn(item.price)}</span>`}
           </div>
-          <p>${item.description || ''}</p>
+          <p>${escapeHtml(item.description || '')}</p>
           ${item.variants ? renderVariantPicker(item) : `
             <div class="add-row">
               ${item.available
@@ -261,7 +273,7 @@ function renderVariantPicker(item) {
     <div class="variant-row">
       ${item.variants.map(v => `
         <button class="variant-btn" onclick="addVariantToCart('${item.id}', '${v.label.replace(/'/g, "\\'")}')">
-          <span>${v.label}</span>
+          <span>${escapeHtml(v.label)}</span>
           <span class="variant-price">${formatNgn(v.price)}</span>
         </button>
       `).join('')}
@@ -330,7 +342,7 @@ function renderCart() {
     : lines.map(l => `
       <div class="cart-line">
         <div>
-          <div class="cart-line-name">${l.displayName}</div>
+          <div class="cart-line-name">${escapeHtml(l.displayName)}</div>
           <div class="cart-line-price">${formatNgn(l.unitPrice)} each</div>
         </div>
         <div class="qty-controls">
